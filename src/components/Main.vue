@@ -2,6 +2,10 @@
 import axios from 'axios';
 import { ref, reactive, computed } from 'vue';
 import { flatten } from 'flat';
+import { useSettingsStore } from '@/store/settings';
+import { storeToRefs } from 'pinia';
+
+let git_commithash = __GIT_COMMIT_ID__;
 
 let res_json;
 let mediaObject;
@@ -16,13 +20,22 @@ let tweet_url = ref('');
 let tweet_username = ref('');
 let tweet_statusid = ref('');
 let willrequrl = ref('');
-let show_res_json = ref(true);
-let show_debug_info = ref(true);
-let show_author = ref(true);
-let show_tweet = ref(true);
-let focus_download_orig_img = ref(true);
+
+// use pinia instead of this
+// let show_res_json = ref(true);
+// let show_debug_info = ref(true);
+// let show_author = ref(true);
+// let show_tweet = ref(true);
+// let focus_download_orig_img = ref(true);
+let settingsStore = useSettingsStore()
+let {show_res_json, show_debug_info, show_author, show_tweet, focus_download_orig_img} = storeToRefs(settingsStore)
 
 let open_settings_drawer = ref(false);
+
+//Axios Error Message
+let is_api_error = ref(false);
+let api_error_status = ref(0);
+let api_error_msg = ref('');
 
 let apiType = ref('tweet');
 
@@ -144,7 +157,12 @@ async function fetchData(apiUrl) {
     res_json = response.data; // 直接通过 await 获取响应体[6](@ref)
     res_json_text.value = JSON.stringify(res_json);
     console.log('数据已保存:', res_json);
+    is_api_error.value = false;
   } catch (error) {
+    is_api_error.value = true;
+    api_error_msg.value = error.message;
+    api_error_status.value = error.status;
+    res_json = error?.response?.data;
     console.error('请求失败:', error);
   }
 }
@@ -203,6 +221,9 @@ async function buttonClicked(){
 tableData.length = 0; //Reactive响应式只能这么清数组
 mediaTableData.length = 0;
 
+res_json_text.value = '';
+res_json = {};
+
 tweet_username.value = extractUsername(tweet_url.value)
 tweet_statusid.value = extractStatusId(tweet_url.value)
 
@@ -246,10 +267,12 @@ if (mediaObject != undefined && mediaObject != null){
                     style="width: 240px;"
                     />
         <el-button @click="buttonClicked">Click</el-button>
-        &nbsp;
         <el-button @click="reverseOpenSettingsDrawer">
             Open Settings
         </el-button>
+        <span style="color:red;" v-if="is_api_error">
+            {{ api_error_status }} : {{ api_error_msg }}
+        </span>
     </p>
     <p>
         username:
@@ -327,10 +350,10 @@ if (mediaObject != undefined && mediaObject != null){
     <div class="media-div">
         <el-table :data="mediaTableData" style="width: 100%">
     <!-- 类型列 -->
-    <el-table-column prop="type" label="媒体类型" width="120" />
+    <el-table-column prop="type" label="Media Type" width="120" />
     
     <!-- 图片预览列 -->
-    <el-table-column label="预览" width="180">
+    <el-table-column label="Preview" width="180">
       <template #default="{ row }">
         <img 
           v-if="row.type === 'photo'"
@@ -356,7 +379,7 @@ if (mediaObject != undefined && mediaObject != null){
     </el-table-column>
     
     <!-- 原始URL列 -->
-    <el-table-column label="资源地址">
+    <el-table-column label="Resource Address">
       <template #default="{ row }">
         <a :href="getOriginImageUrl(row)" target="_blank" class="media-url">
           {{ getOriginImageUrl(row) }}
@@ -365,14 +388,14 @@ if (mediaObject != undefined && mediaObject != null){
     </el-table-column>
     
     <!-- 尺寸列 -->
-    <el-table-column label="尺寸" width="150">
+    <el-table-column label="Size" width="150">
       <template #default="{ row }">
         {{ row.width }} × {{ row.height }}
       </template>
     </el-table-column>
     
     <!-- 替代文本列 -->
-    <el-table-column prop="altText" label="描述文本" />
+    <el-table-column prop="altText" label="Description" />
   </el-table>
     </div>
 
@@ -440,6 +463,9 @@ if (mediaObject != undefined && mediaObject != null){
                     <el-switch
                         v-model="focus_download_orig_img"
                         />
+                </p>
+                <p>
+                    Git_CommitHash: {{ git_commithash }}
                 </p>
             </div>
         </template>
