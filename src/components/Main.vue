@@ -22,13 +22,14 @@ let tweet_statusid = ref('');
 let willrequrl = ref('');
 
 // use pinia instead of this
-// let show_res_json = ref(true);
-// let show_debug_info = ref(true);
-// let show_author = ref(true);
-// let show_tweet = ref(true);
-// let focus_download_orig_img = ref(true);
 let settingsStore = useSettingsStore()
-let {show_res_json, show_debug_info, show_author, show_tweet, focus_download_orig_img} = storeToRefs(settingsStore)
+let {show_res_json,
+    show_debug_info,
+    show_author,
+    show_tweet,
+    focus_download_orig_img,
+    show_jump_to_author_button,
+    jump_to_author_url_prefix} = storeToRefs(settingsStore)
 
 let open_settings_drawer = ref(false);
 
@@ -59,17 +60,6 @@ let apiTypeInUser = computed(
     }
 )
 
-// let getAvatarUrl = computed(
-//     () => {
-//         if(apiType.value === 'tweet'){
-//             return res_json?.tweet?.author?.avatar_url
-//         }else if (apiType.value === 'user'){
-//             return undefined
-//         }else{
-//             return undefined
-//         }
-//     }
-// )
 
 function getOriginImageUrl(obj){
     if (obj?.type === 'photo' && focus_download_orig_img.value){
@@ -258,6 +248,22 @@ if (mediaObject != undefined && mediaObject != null){
     Object.assign(mediaTableData, mediaObject)
 }
 }
+
+function getJumpLink(){
+    let jumpUrl;
+
+    if (is_api_error.value == true || res_json === undefined){
+        return 'javascript:;'
+    }
+    if (apiType.value == 'tweet'){
+        jumpUrl = jump_to_author_url_prefix.value + res_json?.tweet?.author?.screen_name
+    }else if (apiType.value == 'user'){
+        jumpUrl = jump_to_author_url_prefix.value + res_json?.user?.screen_name
+    }else{
+        jumpUrl = 'javascript:;'
+    }
+    return jumpUrl
+}
 </script>
 
 <template>
@@ -309,14 +315,14 @@ if (mediaObject != undefined && mediaObject != null){
     </p>
     <div v-show="show_author">
         <p v-if="apiTypeInTweet">
-            <span class="gray-text">Author:</span> {{ res_json?.tweet?.author?.name }} (@{{ res_json?.tweet?.author?.screen_name }}) [ID:{{ res_json?.tweet?.author?.id }}] <span class="gray-text" v-if="getWebsiteUrl() != undefined && getWebsiteUrl() != ''">Website:</span> {{ getWebsiteUrl() }}
+            <span class="gray-text">Author:</span> {{ res_json?.tweet?.author?.name }} (@{{ res_json?.tweet?.author?.screen_name }}) [ID:{{ res_json?.tweet?.author?.id }}] <a :href="getJumpLink()" target="_blank" v-if="show_jump_to_author_button && !(is_api_error)">Jump</a><span class="gray-text" v-if="getWebsiteUrl() != undefined && getWebsiteUrl() != ''">Website:</span> {{ getWebsiteUrl() }}
             <br>
             <span class="gray-text">Description:</span> {{ res_json?.tweet?.author?.description }}
             <br>
             <span class="gray-text">Joined at</span> {{ res_json?.tweet?.author?.joined }} <span class="gray-text">Followers:</span> {{ res_json?.tweet?.author?.followers }} <span class="gray-text">Following:</span> {{ res_json?.tweet?.author?.following }}
         </p>
         <p v-if="apiTypeInUser">
-            <span class="gray-text">User:</span> {{ res_json?.user?.name }} (@{{ res_json?.user?.screen_name }}) [ID:{{ res_json?.user?.id }}] <span class="gray-text" v-if="getWebsiteUrl() != undefined && getWebsiteUrl() != ''">Website:</span> {{ getWebsiteUrl() }}
+            <span class="gray-text">User:</span> {{ res_json?.user?.name }} (@{{ res_json?.user?.screen_name }}) [ID:{{ res_json?.user?.id }}] <a :href="getJumpLink()" target="_blank" v-if="show_jump_to_author_button && !(is_api_error)">Jump</a><span class="gray-text" v-if="getWebsiteUrl() != undefined && getWebsiteUrl() != ''">Website:</span> {{ getWebsiteUrl() }}
             <br>
             <span class="gray-text">Description:</span> {{ res_json?.user?.description }}
             <br>
@@ -374,7 +380,12 @@ if (mediaObject != undefined && mediaObject != null){
           :src="row.thumbnail_url" 
           class="media-preview"
         >
-        <span v-else>暂不支持预览</span>
+        <img 
+          v-else-if="row.type === 'gif'"
+          :src="row.thumbnail_url" 
+          class="media-preview"
+        >
+        <span v-else>Not Support</span>
       </template>
     </el-table-column>
     
@@ -462,6 +473,18 @@ if (mediaObject != undefined && mediaObject != null){
                     Focus Download Original Image:
                     <el-switch
                         v-model="focus_download_orig_img"
+                        />
+                </p>
+                <p>
+                    Show Jump To Author Link:
+                    <el-switch
+                        v-model="show_jump_to_author_button"
+                        />
+                    <br>
+                    Jump Link Prefix:
+                    <el-input
+                        v-model="jump_to_author_url_prefix"
+                        style="width: 200px;"
                         />
                 </p>
                 <p>

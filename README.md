@@ -1,6 +1,10 @@
-# fxtwitter-getter
+# fxtwitter-gui-example
 
-This template should help get you started developing with Vue 3 in Vite.
+This project is a Web GUI of fxtwitter's api. Written by Vue3 and Vite.
+
+If you want to read fxtwitter's api docs, please jump to [https://github.com/FixTweet/FxTwitter/wiki/API-Home](https://github.com/FixTweet/FxTwitter/wiki/API-Home)
+
+Disclaimer: This project is not affiliated with​​ FxTwitter, and it is a ​​rudimentary prototype project. If you have any questions regarding this project, please submit them via the Issues.  
 
 ## Recommended IDE Setup
 
@@ -11,6 +15,8 @@ This template should help get you started developing with Vue 3 in Vite.
 See [Vite Configuration Reference](https://vite.dev/config/).
 
 ## Project Setup
+
+This project require Git to get current git commit hash, if you not use it, please delete ``__GIT_COMMIT_ID__`` define in ``vite-env.d.ts``, ``vite.config.js`` and ``@/components/Main.vue``.
 
 ```sh
 npm install
