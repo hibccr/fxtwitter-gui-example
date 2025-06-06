@@ -315,18 +315,18 @@ function getJumpLink(){
     </p>
     <div v-show="show_author">
         <p v-if="apiTypeInTweet">
-            <span class="gray-text">Author:</span> {{ res_json?.tweet?.author?.name }} (@{{ res_json?.tweet?.author?.screen_name }}) [ID:{{ res_json?.tweet?.author?.id }}] <a :href="getJumpLink()" target="_blank" v-if="show_jump_to_author_button && !(is_api_error)">Jump</a><span class="gray-text" v-if="getWebsiteUrl() != undefined && getWebsiteUrl() != ''">Website:</span> {{ getWebsiteUrl() }}
+            <span class="gray-text">Author:</span> {{ res_json?.tweet?.author?.name }} (@{{ res_json?.tweet?.author?.screen_name }}) [ID:{{ res_json?.tweet?.author?.id }}] <a :href="getJumpLink()" target="_blank" v-if="show_jump_to_author_button && !(is_api_error)">Jump</a><span v-if="show_jump_to_author_button && !(is_api_error)">&nbsp;</span><span class="gray-text" v-if="getWebsiteUrl() != undefined && getWebsiteUrl() != ''">Website:</span> {{ getWebsiteUrl() }}
             <br>
             <span class="gray-text">Description:</span> {{ res_json?.tweet?.author?.description }}
             <br>
-            <span class="gray-text">Joined at</span> {{ res_json?.tweet?.author?.joined }} <span class="gray-text">Followers:</span> {{ res_json?.tweet?.author?.followers }} <span class="gray-text">Following:</span> {{ res_json?.tweet?.author?.following }}
+            <span class="gray-text">Joined at</span> {{ res_json?.tweet?.author?.joined }} <span class="gray-text">Followers:</span> {{ res_json?.tweet?.author?.followers }} <span class="gray-text">Following:</span> {{ res_json?.tweet?.author?.following }} <span class="gray-text">Tweets:</span> {{ res_json?.tweet?.author?.tweets }}
         </p>
         <p v-if="apiTypeInUser">
-            <span class="gray-text">User:</span> {{ res_json?.user?.name }} (@{{ res_json?.user?.screen_name }}) [ID:{{ res_json?.user?.id }}] <a :href="getJumpLink()" target="_blank" v-if="show_jump_to_author_button && !(is_api_error)">Jump</a><span class="gray-text" v-if="getWebsiteUrl() != undefined && getWebsiteUrl() != ''">Website:</span> {{ getWebsiteUrl() }}
+            <span class="gray-text">User:</span> {{ res_json?.user?.name }} (@{{ res_json?.user?.screen_name }}) [ID:{{ res_json?.user?.id }}] <a :href="getJumpLink()" target="_blank" v-if="show_jump_to_author_button && !(is_api_error)">Jump</a><span v-if="show_jump_to_author_button && !(is_api_error)">&nbsp;</span><span class="gray-text" v-if="getWebsiteUrl() != undefined && getWebsiteUrl() != ''">Website:</span> {{ getWebsiteUrl() }}
             <br>
             <span class="gray-text">Description:</span> {{ res_json?.user?.description }}
             <br>
-            <span class="gray-text">Joined at</span> {{ res_json?.user?.joined }} <span class="gray-text">Followers:</span> {{ res_json?.user?.followers }} <span class="gray-text">Following:</span> {{ res_json?.user?.following }}
+            <span class="gray-text">Joined at</span> {{ res_json?.user?.joined }} <span class="gray-text">Followers:</span> {{ res_json?.user?.followers }} <span class="gray-text">Following:</span> {{ res_json?.user?.following }} <span class="gray-text">Tweets:</span> {{ res_json?.user?.tweets }}
         </p>
     </div>
     <p v-show="show_author">
