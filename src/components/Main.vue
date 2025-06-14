@@ -4,6 +4,11 @@ import { ref, reactive, computed } from 'vue';
 import { flatten } from 'flat';
 import { useSettingsStore } from '@/store/settings';
 import { storeToRefs } from 'pinia';
+import useClipboard from 'vue-clipboard3';
+import { ElMessage } from 'element-plus';
+import { readClipboard } from '@/utils/clipboard-read';
+
+const { toClipboard } = useClipboard();
 
 let git_commithash = __GIT_COMMIT_ID__;
 
@@ -264,6 +269,43 @@ function getJumpLink(){
     }
     return jumpUrl
 }
+
+async function copyResJsonToClipboard(){
+    try{
+        await toClipboard(res_json_text.value)
+        ElMessage({
+            message: 'Copied!',
+            type: 'success'
+        })
+        console.log('Copied! res_json')
+    } catch (e) {
+        ElMessage({
+            message: 'Copy failed!',
+            type: 'error'
+        })
+        console.error(e)
+    }
+}
+
+function pasteButtonClicked(){
+    readClipboard()
+        .then((clipboardData)=>{
+            if(clipboardData){
+                tweet_url.value = clipboardData
+            }else{
+                ElMessage({
+                    message: 'Clipboard is empty or no permission.',
+                    type: 'error'
+                })
+            }
+        })
+        .catch((error)=>{
+            ElMessage({
+                message: 'Error: when use clipboard.',
+                type: 'error'
+            })
+        })
+}
 </script>
 
 <template>
@@ -273,6 +315,7 @@ function getJumpLink(){
                     style="width: 240px;"
                     />
         <el-button @click="buttonClicked">Click</el-button>
+        <el-button @click="pasteButtonClicked">Paste</el-button>
         <el-button @click="reverseOpenSettingsDrawer">
             Open Settings
         </el-button>
@@ -307,6 +350,10 @@ function getJumpLink(){
         <el-button
         @click="reverseShowResJson">
             {{ show_res_json ? 'Hide' : 'Show' }}
+        </el-button>
+        <el-button
+        @click="copyResJsonToClipboard">
+            Copy
         </el-button>
         <el-input v-model="res_json_text"
         type="textarea"
@@ -450,20 +497,17 @@ function getJumpLink(){
                     <el-switch
                         v-model="show_author"
                         />
-                </p>
-                <p>
+                    <br>
                     Show res_json:
                     <el-switch
                         v-model="show_res_json"
                         />
-                </p>
-                <p>
+                    <br>
                     Show debugInfo:
                     <el-switch
                         v-model="show_debug_info"
                         />
-                </p>
-                <p>
+                    <br>
                     Show Tweet:
                     <el-switch
                         v-model="show_tweet"
