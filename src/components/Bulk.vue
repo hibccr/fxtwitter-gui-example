@@ -8,6 +8,7 @@ let ref_output = ref('')
 let processMessage = ref('')
 
 let urlDataObjectArray = reactive([])
+let mediaListData = reactive([])
 
 function removeHashComments(text) {
     // 1. Delete a entity line
@@ -85,9 +86,28 @@ function outputToBox(){
                 ref_output.value = ref_output.value + 'Error: Axios: ' + element.axiosError.message + ' (' + element.axiosError.status + '), url=' + element.apiUrl + ', body=' + JSON.stringify(element.axiosError?.response?.data) + '\n'
             }
         }else{
+            outputToMediaList(element)
             ref_output.value = ref_output.value + JSON.stringify(element.axiosResponse?.data) + '\n'
         }
     })
+}
+
+function outputToMediaList(obj){
+    if(obj.userOrTweet == 'user'){
+        return
+    }
+    if(obj.axiosResponse.data.tweet?.media?.all){
+        obj.axiosResponse.data.tweet?.media?.all.map((element) => {
+            mediaListData.push(element)
+        })
+    }
+}
+
+function clearButtonClicked(){
+    ref_input.value = ''
+    ref_output.value = ''
+    urlDataObjectArray.length = 0
+    mediaListData.length = 0
 }
 
 async function bulkButtonClicked(){
@@ -183,27 +203,64 @@ async function bulkButtonClicked(){
         <p>
             Input:
             <el-button @click="bulkButtonClicked">Click</el-button>
+            <el-button @click="clearButtonClicked">Clear</el-button>
             <span>
                 {{ processMessage }}
             </span>
         </p>
-        <el-input 
-            v-model="ref_input"
-            style="width: 100%;"
-            :rows="5"
-            type="textarea"
-        />
+        <el-input v-model="ref_input" style="width: 100%;" :rows="5" type="textarea" />
         <p>
             Output:
         </p>
-        <el-input
-            v-model="ref_output"
-            style="width: 100%;"
-            :rows="5"
-            type="textarea"
-        />
+        <el-input v-model="ref_output" style="width: 100%;" :rows="5" type="textarea" />
+        <p>
+            Media List:
+        </p>
+        <div class="media-div">
+            <el-table :data="mediaListData" style="width: 100%">
+                <!-- Url -->
+                <!-- <el-table-column prop="url" label="url" width="240" /> -->
+                <!-- 类型列 -->
+                <el-table-column prop="type" label="Media Type" width="120" />
+
+                <!-- 图片预览列 -->
+                <el-table-column label="Preview" width="180">
+                    <template #default="{ row }">
+                        <img v-if="row.type === 'photo'" :src="row.url" class="media-preview" :alt="row.altText">
+                        <img v-else-if="row.type === 'video'" :src="row.thumbnail_url" class="media-preview">
+                        <img v-else-if="row.type === 'gif'" :src="row.thumbnail_url" class="media-preview">
+                        <span v-else>Not Support</span>
+                    </template>
+                </el-table-column>
+
+                <!-- 原始URL列 -->
+                <el-table-column label="Resource Address">
+                    <template #default="{ row }">
+                        <a :href="row?.url" target="_blank" class="media-url">
+                            {{ row?.url }}
+                        </a>
+                    </template>
+                </el-table-column>
+
+                <!-- 尺寸列 -->
+                <el-table-column label="Size" width="150">
+                    <template #default="{ row }">
+                        {{ row.width }} × {{ row.height }}
+                    </template>
+                </el-table-column>
+
+                <!-- 替代文本列 -->
+                <el-table-column prop="altText" label="Description" />
+            </el-table>
+        </div>
     </div>
 </template>
 
 <style lang="css" scoped>
+.media-preview {
+  max-width: 160px;
+  max-height: 120px;
+  border-radius: 4px;
+  object-fit: contain;
+}
 </style>
