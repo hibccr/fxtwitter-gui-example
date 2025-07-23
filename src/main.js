@@ -3,7 +3,7 @@ import { createPinia } from 'pinia'
 import piniaPluginPersistedstate from 'pinia-plugin-persistedstate'
 import App from './App.vue'
 import 'element-plus/dist/index.css'
-import {createMemoryHistory, createRouter} from 'vue-router'
+import {createWebHashHistory, createRouter} from 'vue-router'
 import Main from './components/Main.vue'
 import Bulk from './components/Bulk.vue'
 
@@ -20,7 +20,7 @@ const routes = [
 ]
 
 const router = createRouter({
-    history: createMemoryHistory(),
+    history: createWebHashHistory(),
     routes
 })
 
