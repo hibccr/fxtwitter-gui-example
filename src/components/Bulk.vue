@@ -34,10 +34,10 @@ function removeHashComments(text) {
 
 function isValidURL(str) {
   try {
-    new URL(str); // 解析成功则返回 true
+    new URL(str); // Returns true if parsing succeeds
     return true;
   } catch (e) {
-    return false; // 解析失败返回 false
+    return false; // Returns false if parsing fails
   }
 }
 
@@ -55,8 +55,8 @@ function replaceUsernamesSafely(text) {
 
 function getDomain(urlString) {
   try {
-    const url = new URL(urlString); // 解析URL
-    return url.hostname; // 返回域名（如 "www.example.com"）
+    const url = new URL(urlString);
+    return url.hostname; // Parse the URL and return the domain name (e.g., "www.example.com")
   } catch (error) {
     console.error("URL error:", error);
     return null;
@@ -265,10 +265,10 @@ async function bulkButtonClicked(){
             <el-table :data="mediaListData" style="width: 100%">
                 <!-- Url -->
                 <!-- <el-table-column prop="url" label="url" width="240" /> -->
-                <!-- 类型列 -->
+                <!-- Media Type -->
                 <el-table-column prop="type" label="Media Type" width="120" />
 
-                <!-- 图片预览列 -->
+                <!-- Preview -->
                 <el-table-column label="Preview" width="180">
                     <template #default="{ row }">
                         <img v-if="row.type === 'photo'" :src="row.url" class="media-preview" :alt="row.altText">
@@ -278,7 +278,7 @@ async function bulkButtonClicked(){
                     </template>
                 </el-table-column>
 
-                <!-- 原始URL列 -->
+                <!-- Resource Address -->
                 <el-table-column label="Resource Address">
                     <template #default="{ row }">
                         <a :href="getOriginImageUrl(row, focus_download_orig_img)" target="_blank" class="media-url">
@@ -287,14 +287,14 @@ async function bulkButtonClicked(){
                     </template>
                 </el-table-column>
 
-                <!-- 尺寸列 -->
+                <!-- Size -->
                 <el-table-column label="Size" width="150">
                     <template #default="{ row }">
                         {{ row.width }} × {{ row.height }}
                     </template>
                 </el-table-column>
 
-                <!-- 替代文本列 -->
+                <!-- Alt Text (Description) -->
                 <el-table-column prop="altText" label="Description" />
             </el-table>
         </div>

@@ -1,8 +1,6 @@
 export function extractUsername(url){
     try {
-        // 解析路径并分割为数组
         const pathSegments = new URL(url).pathname.split('/').filter(s => s);
-        // 用户名位于域名后的第一个有效路径段（如 "i"）
         return pathSegments.length >= 1 ? pathSegments[0] : null;
     } catch (e) {
         return null;
@@ -35,15 +33,13 @@ export function judgeUserOrTweet(username, statusId){
 }
 
 export function buildApiUrlv2(username, statusId) {
-    // 验证 username 有效性
+    
     if (!username || typeof username !== 'string') {
-        return null; // 或抛出错误
+        return null;
     }
 
-    // 对 username 进行编码
     const encodedUsername = encodeURIComponent(username);
     
-    // 动态拼接 URL
     const baseUrl = `https://api.fxtwitter.com/${encodedUsername}`;
     const statusPath = (statusId && /^\d+$/.test(statusId)) ? `/status/${statusId}` : '';
     

@@ -118,25 +118,25 @@ function extractStatusId(url) {
 
 function extractUsername(url) {
     try {
-        // 解析路径并分割为数组
+        // Parse the path and split it into an array
         const pathSegments = new URL(url).pathname.split('/').filter(s => s);
-        // 用户名位于域名后的第一个有效路径段（如 "i"）
+        // The username is located in the first valid path segment after the domain (e.g., "i")
         return pathSegments.length >= 1 ? pathSegments[0] : null;
     } catch (e) {
         return null;
     }
 }
 
-// 示例测试
-//console.log(extractUsername('https://x.com/i/status/1901969891890192564/photo/1')); // 输出："i"
-//console.log(extractUsername('https://twitter.com/john_doe/status/12345'));        // 输出："john_doe"
+// Example
+//console.log(extractUsername('https://x.com/i/status/1901969891890192564/photo/1')); // Output："i"
+//console.log(extractUsername('https://twitter.com/john_doe/status/12345'));        // Output："john_doe"
 
 function buildApiUrl(username, statusId) {
-    // 验证输入参数有效性
+    // Validate input parameters
     if (!username || !statusId || typeof username !== 'string' || !/^\d+$/.test(statusId)) {
-        return null; // 返回 null 或抛出错误（根据需求调整）
+        return null; // Return null or throw error (adjust depending on requirements)
     }
-    // 使用模板字符串拼接 URL[4,7](@ref)
+    // Build URL using template string
     return `https://api.fxtwitter.com/${encodeURIComponent(username)}/status/${statusId}`;
 }
 
@@ -149,16 +149,16 @@ function generateApiUrl(originalUrl) {
 async function fetchData(apiUrl) {
   try {
     const response = await axios.get(apiUrl);
-    res_json = response.data; // 直接通过 await 获取响应体[6](@ref)
+    res_json = response.data;
     res_json_text.value = JSON.stringify(res_json);
-    console.log('数据已保存:', res_json);
+    console.log('Data Saved:', res_json);
     is_api_error.value = false;
   } catch (error) {
     is_api_error.value = true;
     api_error_msg.value = error.message;
     api_error_status.value = error.status;
     res_json = error?.response?.data;
-    console.error('请求失败:', error);
+    console.error('Request Error:', error);
   }
 }
 //fetchData();
@@ -187,15 +187,15 @@ function reverseOpenSettingsDrawer(){
 }
 
 function buildApiUrlv2(username, statusId) {
-    // 验证 username 有效性
+    // Validate username format
     if (!username || typeof username !== 'string') {
-        return null; // 或抛出错误
+        return null; // Return null or throw custom error
     }
 
-    // 对 username 进行编码
+    // Encode username for URL safety
     const encodedUsername = encodeURIComponent(username);
     
-    // 动态拼接 URL
+    // Dynamically construct URL segments
     const baseUrl = `https://api.fxtwitter.com/${encodedUsername}`;
     const statusPath = (statusId && /^\d+$/.test(statusId)) ? `/status/${statusId}` : '';
     
@@ -208,12 +208,12 @@ function appendOrigParam(url) {
         urlObj.searchParams.set('name', 'orig');
         return urlObj.toString();
     } catch (e) {
-        return null; // 处理无效URL的情况
+        return null; // url invaild
     }
 }
 
 async function buttonClicked(){
-tableData.length = 0; //Reactive响应式只能这么清数组
+tableData.length = 0; //clear tableData and keep Reactive
 mediaTableData.length = 0;
 
 res_json_text.value = '';
@@ -402,10 +402,10 @@ function pasteButtonClicked(){
     </div>
     <div class="media-div">
         <el-table :data="mediaTableData" style="width: 100%">
-    <!-- 类型列 -->
+    <!-- Media Type -->
     <el-table-column prop="type" label="Media Type" width="120" />
     
-    <!-- 图片预览列 -->
+    <!-- Preview -->
     <el-table-column label="Preview" width="180">
       <template #default="{ row }">
         <img 
@@ -436,7 +436,7 @@ function pasteButtonClicked(){
       </template>
     </el-table-column>
     
-    <!-- 原始URL列 -->
+    <!-- Resource Address -->
     <el-table-column label="Resource Address">
       <template #default="{ row }">
         <a :href="getOriginImageUrl(row)" target="_blank" class="media-url">
@@ -445,14 +445,14 @@ function pasteButtonClicked(){
       </template>
     </el-table-column>
     
-    <!-- 尺寸列 -->
+    <!-- Size -->
     <el-table-column label="Size" width="150">
       <template #default="{ row }">
         {{ row.width }} × {{ row.height }}
       </template>
     </el-table-column>
     
-    <!-- 替代文本列 -->
+    <!-- Description (altText) -->
     <el-table-column prop="altText" label="Description" />
   </el-table>
     </div>
@@ -479,10 +479,10 @@ function pasteButtonClicked(){
     <p>
         <el-table :data="tableData" border style="width: 100%"
         v-if="show_debug_info">
-            <!-- Attribute 列 -->
+            <!-- Attribute -->
             <el-table-column prop="attribute" label="Attr." width="180" />
     
-            <!-- Content 列 -->
+            <!-- Content -->
             <el-table-column prop="content" label="Content" />
         </el-table>
     </p>

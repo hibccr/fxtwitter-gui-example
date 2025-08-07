@@ -12,6 +12,6 @@ export function appendOrigParam(url) {
         urlObj.searchParams.set('name', 'orig');
         return urlObj.toString();
     } catch (e) {
-        return null; // 处理无效URL的情况
+        return null;
     }
 }
