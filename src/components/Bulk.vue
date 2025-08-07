@@ -2,13 +2,23 @@
 import { buildUrlDataObject } from '@/utils/extract-id'
 import { ref, reactive } from 'vue'
 import axios from 'axios'
+import { readClipboard } from '@/utils/clipboard-read'
+import { ElMessage } from 'element-plus'
+import { copyStringToClipboard } from '@/utils/clipboard-write'
+import { useBulkSettingsStore } from '@/store/bulk-settings'
+import { storeToRefs } from 'pinia'
+import { getOriginImageUrl } from '@/utils/url-processing'
 
 let ref_input = ref('')
 let ref_output = ref('')
 let processMessage = ref('')
+let settingsDrawerFlag = ref(false)
 
 let urlDataObjectArray = reactive([])
 let mediaListData = reactive([])
+
+let bulkSettingsStore = useBulkSettingsStore()
+let { focus_download_orig_img } = storeToRefs(bulkSettingsStore)
 
 function removeHashComments(text) {
     // 1. Delete a entity line
@@ -110,6 +120,38 @@ function clearButtonClicked(){
     mediaListData.length = 0
 }
 
+function pasteButtonClicked(){
+    readClipboard()
+        .then((clipboardData)=>{
+            if(clipboardData){
+                ref_input.value = clipboardData
+            }else{
+                ElMessage({
+                    message: 'Clipboard is empty or no permission.',
+                    type: 'error'
+                })
+            }
+        })
+        .catch((error)=>{
+            ElMessage({
+                message: 'Error: when use clipboard.',
+                type: 'error'
+            })
+        })
+}
+
+function copyButtonClicked(){
+    copyStringToClipboard(ref_output.value)
+}
+
+function openSettingsDrawerButtonClicked(){
+    if(settingsDrawerFlag.value === false){
+        settingsDrawerFlag.value = true
+    }else{
+        settingsDrawerFlag.value = false
+    }
+}
+
 async function bulkButtonClicked(){
     let removeHashCommentsResult,
         splitStringResult,
@@ -203,7 +245,9 @@ async function bulkButtonClicked(){
         <p>
             Input:
             <el-button @click="bulkButtonClicked">Click</el-button>
+            <el-button @click="pasteButtonClicked">Paste</el-button>
             <el-button @click="clearButtonClicked">Clear</el-button>
+            <el-button @click="openSettingsDrawerButtonClicked">Settings</el-button>
             <span>
                 {{ processMessage }}
             </span>
@@ -211,6 +255,7 @@ async function bulkButtonClicked(){
         <el-input v-model="ref_input" style="width: 100%;" :rows="5" type="textarea" />
         <p>
             Output:
+            <el-button @click="copyButtonClicked">Copy</el-button>
         </p>
         <el-input v-model="ref_output" style="width: 100%;" :rows="5" type="textarea" />
         <p>
@@ -236,8 +281,8 @@ async function bulkButtonClicked(){
                 <!-- 原始URL列 -->
                 <el-table-column label="Resource Address">
                     <template #default="{ row }">
-                        <a :href="row?.url" target="_blank" class="media-url">
-                            {{ row?.url }}
+                        <a :href="getOriginImageUrl(row, focus_download_orig_img)" target="_blank" class="media-url">
+                            {{ getOriginImageUrl(row, focus_download_orig_img) }}
                         </a>
                     </template>
                 </el-table-column>
@@ -253,6 +298,19 @@ async function bulkButtonClicked(){
                 <el-table-column prop="altText" label="Description" />
             </el-table>
         </div>
+        <el-drawer
+            v-model="settingsDrawerFlag"
+            title="Settings"
+            direction="rtl">
+            <template #default>
+                <div>
+                    Focus Download Original Image:
+                    <el-switch
+                        v-model="focus_download_orig_img"
+                    />
+                </div>
+            </template>
+        </el-drawer>
     </div>
 </template>
 
