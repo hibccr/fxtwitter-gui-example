@@ -6,6 +6,7 @@ import 'element-plus/dist/index.css'
 import {createWebHashHistory, createRouter} from 'vue-router'
 import Main from './components/Main.vue'
 import Bulk from './components/Bulk.vue'
+import AppendOrigParam from './components/AppendOrigParam.vue'
 
 //createApp(App).mount('#app')
 
@@ -16,7 +17,8 @@ const app = createApp(App)
 // define route
 const routes = [
     {path: '/', component: Main},
-    {path: '/bulk', component: Bulk}
+    {path: '/bulk', component: Bulk},
+    {path: '/append-orig-param', component: AppendOrigParam}
 ]
 
 const router = createRouter({

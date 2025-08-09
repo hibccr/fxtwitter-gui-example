@@ -1,5 +1,7 @@
 <script setup lang="ts">
-
+import {
+  ArrowDown
+} from '@element-plus/icons-vue'
 </script>
 
 <template>
@@ -8,7 +10,19 @@
             <el-header class="header">
                 <nav>
                     <RouterLink to="/">Index</RouterLink>&nbsp;
-                    <RouterLink to="/bulk">Bulk</RouterLink>
+                    <RouterLink to="/bulk">Bulk</RouterLink>&nbsp;
+                    <el-dropdown>
+                      <span class="el-dropdown-link dropdown-toolbox">
+                        Toolbox<el-icon class="el-icon--right"><arrow-down /></el-icon>
+                      </span>
+                      <template #dropdown>
+                        <el-dropdown-menu>
+                          <el-dropdown-item>
+                            <RouterLink to="/append-orig-param">Append Orig Parameter</RouterLink>
+                          </el-dropdown-item>
+                        </el-dropdown-menu>
+                      </template>
+                    </el-dropdown>
                 </nav>
             </el-header>
             <el-main class="main">
@@ -26,5 +40,9 @@
 
 .main {
   padding: 0 0 0 0;
+}
+
+.dropdown-toolbox {
+  font-size: 16px;
 }
 </style>

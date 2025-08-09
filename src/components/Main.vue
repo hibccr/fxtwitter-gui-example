@@ -544,6 +544,7 @@ function pasteButtonClicked(){
 .gray-text {
     color: #001aff;
 }
+
 .media-preview {
   max-width: 160px;
   max-height: 120px;
