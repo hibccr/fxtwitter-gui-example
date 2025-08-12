@@ -1,5 +1,8 @@
 <script setup lang="ts">
 import { ref, reactive } from 'vue';
+import { readClipboard } from '@/utils/clipboard-read';
+import { copyStringToClipboard } from '@/utils/clipboard-write';
+import { ElMessage } from 'element-plus';
 
 let ref_input = ref('')
 let ref_output = ref('')
@@ -67,6 +70,26 @@ function clearButtonClicked(){
     ref_output.value = ''
     photoListData.length = 0
 }
+
+function pasteButtonClicked(){
+    readClipboard()
+        .then((clipboardData)=>{
+            if(clipboardData){
+                ref_input.value = clipboardData
+            }else{
+                ElMessage({
+                    message: 'Clipboard is empty or no permission.',
+                    type: 'error'
+                })
+            }
+        })
+        .catch((error)=>{
+            ElMessage({
+                message: 'Error: when use clipboard.',
+                type: 'error'
+            })
+        })
+}
 </script>
 
 <template>
@@ -77,11 +100,13 @@ function clearButtonClicked(){
         <p>
             Input:
             <el-button @click="inputButtonClicked">Click</el-button>
+            <el-button @click="pasteButtonClicked">Paste</el-button>
             <el-button @click="clearButtonClicked">Clear</el-button>
         </p>
         <el-input v-model="ref_input" style="width: 100%;" :rows="5" type="textarea" />
         <p>
             Output:
+            <el-button @click="copyStringToClipboard(ref_output)">Copy</el-button>
         </p>
         <el-input v-model="ref_output" style="width: 100%;" :rows="5" type="textarea" />
         <p>

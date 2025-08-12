@@ -1,10 +1,10 @@
 # fxtwitter-gui-example
 
-This project is a Web GUI of fxtwitter's api. Written by Vue3 and Vite.
+This project is a Web GUI of FxEmbed's api. Written by Vue3 and Vite.
 
-If you want to read fxtwitter's api docs, please jump to [https://github.com/FixTweet/FxTwitter/wiki/API-Home](https://github.com/FixTweet/FxTwitter/wiki/API-Home)
+If you want to read FxEmbed's api docs, please jump to [https://github.com/FxEmbed/FxEmbed/wiki/API-Home](https://github.com/FxEmbed/FxEmbed/wiki/API-Home)
 
-Disclaimer: This project is not affiliated with​​ FxTwitter, and it is a ​​rudimentary prototype project. If you have any questions regarding this project, please submit them via the Issues.  
+Disclaimer: This project is not affiliated with​​ FxEmbed, and it is a ​​rudimentary prototype project. If you have any questions regarding this project, please submit them via the Issues.  
 
 ## Recommended IDE Setup
 
