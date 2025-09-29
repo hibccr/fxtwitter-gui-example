@@ -166,7 +166,8 @@ async function bulkButtonClicked(){
         'sotwe.com',
         'www.sotwe.com',
         'twitter.com',
-        'www.twitter.com'
+        'www.twitter.com',
+        'xcancel.com'
     ]
     
     console.log('System Begin at ' + new Date())
