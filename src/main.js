@@ -7,6 +7,7 @@ import {createWebHashHistory, createRouter} from 'vue-router'
 import Main from './components/Main.vue'
 import Bulk from './components/Bulk.vue'
 import AppendOrigParam from './components/AppendOrigParam.vue'
+import FxJsonParser from './components/FxJsonParser.vue'
 
 //createApp(App).mount('#app')
 
@@ -18,7 +19,8 @@ const app = createApp(App)
 const routes = [
     {path: '/', component: Main},
     {path: '/bulk', component: Bulk},
-    {path: '/append-orig-param', component: AppendOrigParam}
+    {path: '/append-orig-param', component: AppendOrigParam},
+    {path: '/fxjson-parser', component: FxJsonParser}
 ]
 
 const router = createRouter({
