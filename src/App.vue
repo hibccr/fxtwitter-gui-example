@@ -20,6 +20,9 @@ import {
                           <el-dropdown-item>
                             <RouterLink to="/append-orig-param">Append Orig Parameter</RouterLink>
                           </el-dropdown-item>
+                          <el-dropdown-item>
+                            <RouterLink to="/fxjson-parser">FxEmbed JSON Parser</RouterLink>
+                          </el-dropdown-item>
                         </el-dropdown-menu>
                       </template>
                     </el-dropdown>
