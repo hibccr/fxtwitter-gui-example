@@ -160,14 +160,17 @@ async function bulkButtonClicked(){
         formattedURLResult3,
         formattedURLResult4;
     
-    let vaildUrlPrefix = [
+    let validUrlPrefix = [
         'x.com',
         'www.x.com',
         'sotwe.com',
         'www.sotwe.com',
         'twitter.com',
         'www.twitter.com',
-        'xcancel.com'
+        'xcancel.com',
+        'fxtwitter.com',
+        'fixupx.com',
+        'vxtwitter.com'
     ]
     
     console.log('System Begin at ' + new Date())
@@ -214,7 +217,7 @@ async function bulkButtonClicked(){
         console.log('Now Element:' + element)
         let domain = getDomain(element)
         console.log('DomainToLowerCase:'+ domain.toLowerCase())
-        if(vaildUrlPrefix.includes(domain.toLowerCase())){
+        if(validUrlPrefix.includes(domain.toLowerCase())){
             console.log('judge Statement: true')
             return element
         }else{
