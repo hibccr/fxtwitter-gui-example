@@ -170,7 +170,9 @@ async function bulkButtonClicked(){
         'xcancel.com',
         'fxtwitter.com',
         'fixupx.com',
-        'vxtwitter.com'
+        'i.fixupx.com',
+        'vxtwitter.com',
+        'fixvx.com'
     ]
     
     console.log('System Begin at ' + new Date())
