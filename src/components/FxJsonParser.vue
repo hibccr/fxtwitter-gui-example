@@ -107,6 +107,8 @@
                     <a
                       v-for="(video, index) in row.tweet.media?.videos?.slice(0,4)"
                       :href="video.url"
+                      rel="noreferrer"
+                      target="_blank"
                     >
                       {{ video.url }}
                     </a>

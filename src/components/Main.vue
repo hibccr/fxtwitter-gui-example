@@ -439,7 +439,7 @@ function pasteButtonClicked(){
     <!-- Resource Address -->
     <el-table-column label="Resource Address">
       <template #default="{ row }">
-        <a :href="getOriginImageUrl(row)" target="_blank" class="media-url">
+        <a :href="getOriginImageUrl(row)" target="_blank" class="media-url" rel="noreferrer">
           {{ getOriginImageUrl(row) }}
         </a>
       </template>

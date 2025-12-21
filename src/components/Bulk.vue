@@ -287,7 +287,7 @@ async function bulkButtonClicked(){
                 <!-- Resource Address -->
                 <el-table-column label="Resource Address">
                     <template #default="{ row }">
-                        <a :href="getOriginImageUrl(row, focus_download_orig_img)" target="_blank" class="media-url">
+                        <a :href="getOriginImageUrl(row, focus_download_orig_img)" target="_blank" class="media-url" rel="noreferrer">
                             {{ getOriginImageUrl(row, focus_download_orig_img) }}
                         </a>
                     </template>
