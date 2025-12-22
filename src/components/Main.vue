@@ -243,7 +243,6 @@ await fetchData(willrequrl.value)
 let flatedJson = flatten(res_json)
 console.log('flatedJson:' , flatedJson)
 let tableData_temp = Object.entries(flatedJson).map(([attribute, content]) => ({ attribute, content }))
-//Object.assign(tableData,Object.entries(flatedJson).map(([attribute, content]) => ({ attribute, content })))
 console.log('temp:',tableData_temp)
 Object.assign(tableData,tableData_temp)
 console.log('tableData:', tableData)
@@ -319,7 +318,8 @@ function pasteButtonClicked(){
         <el-button @click="reverseOpenSettingsDrawer">
             Open Settings
         </el-button>
-        <span style="color:red;" v-if="is_api_error">
+        <span style="color:red;"
+              v-if="is_api_error">
             {{ api_error_status }} : {{ api_error_msg }}
         </span>
     </p>
@@ -402,59 +402,59 @@ function pasteButtonClicked(){
     </div>
     <div class="media-div">
         <el-table :data="mediaTableData" style="width: 100%">
-    <!-- Media Type -->
-    <el-table-column prop="type" label="Media Type" width="120" />
+            <!-- Media Type -->
+            <el-table-column prop="type" label="Media Type" width="120" />
     
-    <!-- Preview -->
-    <el-table-column label="Preview" width="180">
-      <template #default="{ row }">
-        <img 
-          v-if="row.type === 'photo'"
-          :src="row.url" 
-          class="media-preview"
-          :alt="row.altText"
-        >
-        <!-- <video 
-            v-else-if="row.type === 'video'"
-            controls
-            :poster="row.thumbnail_url"
-            class="media-preview"
-        >
-            <source :src="row.url">
-        </video> -->
-        <img 
-          v-else-if="row.type === 'video'"
-          :src="row.thumbnail_url" 
-          class="media-preview"
-        >
-        <img 
-          v-else-if="row.type === 'gif'"
-          :src="row.thumbnail_url" 
-          class="media-preview"
-        >
-        <span v-else>Not Support</span>
-      </template>
-    </el-table-column>
+            <!-- Preview -->
+            <el-table-column label="Preview" width="180">
+                <template #default="{ row }">
+                    <img 
+                      v-if="row.type === 'photo'"
+                      :src="row.url" 
+                      class="media-preview"
+                      :alt="row.altText"
+                    >
+                    <!-- <video 
+                        v-else-if="row.type === 'video'"
+                        controls
+                        :poster="row.thumbnail_url"
+                        class="media-preview"
+                    >
+                        <source :src="row.url">
+                    </video> -->
+                    <img 
+                      v-else-if="row.type === 'video'"
+                      :src="row.thumbnail_url" 
+                      class="media-preview"
+                    >
+                    <img 
+                      v-else-if="row.type === 'gif'"
+                      :src="row.thumbnail_url" 
+                      class="media-preview"
+                    >
+                    <span v-else>Not Support</span>
+                </template>
+            </el-table-column>
     
-    <!-- Resource Address -->
-    <el-table-column label="Resource Address">
-      <template #default="{ row }">
-        <a :href="getOriginImageUrl(row)" target="_blank" class="media-url" rel="noreferrer">
-          {{ getOriginImageUrl(row) }}
-        </a>
-      </template>
-    </el-table-column>
+            <!-- Resource Address -->
+            <el-table-column label="Resource Address">
+              <template #default="{ row }">
+                <a :href="getOriginImageUrl(row)" target="_blank" class="media-url" rel="noreferrer">
+                  {{ getOriginImageUrl(row) }}
+                </a>
+              </template>
+            </el-table-column>
     
-    <!-- Size -->
-    <el-table-column label="Size" width="150">
-      <template #default="{ row }">
-        {{ row.width }} × {{ row.height }}
-      </template>
-    </el-table-column>
+            <!-- Size -->
+            <el-table-column label="Size" width="150">
+              <template #default="{ row }">
+                {{ row.width }} × {{ row.height }}
+              </template>
+            </el-table-column>
     
-    <!-- Description (altText) -->
-    <el-table-column prop="altText" label="Description" />
-  </el-table>
+            <!-- Description (altText) -->
+            <el-table-column prop="altText" label="Description" />
+        </el-table>
     </div>
 
     <div v-if="show_tweet === true && apiType === 'tweet'">

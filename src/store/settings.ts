@@ -1,5 +1,5 @@
 import { defineStore } from "pinia"
-import { ref,reactive } from "vue";
+import { ref, reactive } from "vue";
 
 export const useSettingsStore = defineStore('settings',()=>{
     let show_res_json = ref(true);

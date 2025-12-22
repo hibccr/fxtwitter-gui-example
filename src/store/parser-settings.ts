@@ -1,5 +1,5 @@
 import { defineStore } from "pinia"
-import { ref,reactive } from "vue";
+import { ref, reactive } from "vue";
 
 export const useParserSettingsStore = defineStore('parser-settings',()=>{
     let x_open_link_prefix = ref('https://x.com');
