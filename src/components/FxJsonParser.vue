@@ -93,6 +93,9 @@
                       class="tweet-image"
                       :style="{ width: getImageWidth(row.tweet.media.photos.length), height: '150px' }"
                     />
+                    <div v-if="show_alt_text" class="tweet-media-alttext">
+                      {{ processAltText(row) }}
+                    </div>
                   </div>
 
                   <div v-if="row.tweet.media?.videos?.length" class="tweet-media">
@@ -194,6 +197,9 @@
                         :label="item.label"
                         :value="item.value" />
                     </el-select>
+                    <br>
+                    Show Alt Text:
+                    <el-switch v-model="show_alt_text" />
                 </div>
             </template>
         </el-drawer>
@@ -222,8 +228,9 @@ import { storeToRefs } from 'pinia'
   let settingsDrawerFlag = ref(false)
 
   let parserSettingsStore = useParserSettingsStore()
-  let {x_open_link_prefix,
-       enable_video_player} = storeToRefs(parserSettingsStore)
+  let { x_open_link_prefix,
+        enable_video_player,
+        show_alt_text } = storeToRefs(parserSettingsStore)
 
   const enable_video_player_options = [
     {
@@ -325,6 +332,29 @@ function clearButtonClicked(){
   const tableRowClassName = ({ row }) => {
     return row.tweet ? 'tweet-row' : 'user-row'
   }
+
+  function processAltText(obj) {
+  // 检查对象结构是否存在
+  if (!obj || !obj.tweet || !obj.tweet.media || !obj.tweet.media.photos) {
+    return '';
+  }
+  
+  const photos = obj.tweet.media.photos;
+  
+  // 如果没有照片，返回空字符串
+  if (photos.length === 0) {
+    return '';
+  }
+  
+  // 处理每个照片的altText
+  const results = photos.map((photo, index) => {
+    const altText = photo.altText || '';
+    return `${index + 1}:${altText}`;
+  });
+  
+  // 用换行符连接所有结果
+  return results.join('\n');
+}
   </script>
   
   <style scoped>
@@ -506,6 +536,10 @@ function clearButtonClicked(){
     color: #0f1419;
     font-weight: 600;
     border-bottom: 2px solid #e1e8ed;
+  }
+
+  .tweet-media-alttext {
+    color: #5f5b5b;
   }
   </style>
   

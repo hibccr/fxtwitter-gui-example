@@ -29,4 +29,9 @@ export default defineConfig({
       execSync('git rev-parse --short HEAD').toString().trim()
     ),
   },
+  server: {
+    headers: {
+      'Referrer-Policy': 'no-referrer'
+    },
+  },
 })
