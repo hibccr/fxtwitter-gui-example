@@ -204,44 +204,44 @@
             </template>
         </el-drawer>
     </div>
-  </template>
+</template>
   
-  <script setup>
-  import { ref, computed } from 'vue'
-  import { ElMessage } from 'element-plus'
-  import {
-    User,
-    Check,
-    Location,
-    ChatDotRound,
-    Refresh,
-    Star,
-    Notebook,
-    Document,
-    Calendar,
-    Clock,
-    View
-  } from '@element-plus/icons-vue'
+<script setup>
+import { ref, computed } from 'vue'
+import { ElMessage } from 'element-plus'
+import {
+  User,
+  Check,
+  Location,
+  ChatDotRound,
+  Refresh,
+  Star,
+  Notebook,
+  Document,
+  Calendar,
+  Clock,
+  View
+} from '@element-plus/icons-vue'
 import { useParserSettingsStore } from '@/store/parser-settings'
 import { storeToRefs } from 'pinia'
 
-  let settingsDrawerFlag = ref(false)
+let settingsDrawerFlag = ref(false)
 
-  let parserSettingsStore = useParserSettingsStore()
-  let { x_open_link_prefix,
-        enable_video_player,
-        show_alt_text } = storeToRefs(parserSettingsStore)
+let parserSettingsStore = useParserSettingsStore()
+let { x_open_link_prefix,
+      enable_video_player,
+      show_alt_text } = storeToRefs(parserSettingsStore)
 
-  const enable_video_player_options = [
-    {
-      value: 'no',
-      label: 'no'
-    },
-    {
-      value: 'video_element',
-      label: '<video> element (Vanilla JS)'
-    }
-  ]
+const enable_video_player_options = [
+  {
+    value: 'no',
+    label: 'no'
+  },
+  {
+    value: 'video_element',
+    label: '<video> element (Vanilla JS)'
+  }
+]
 
 function settingsButtonClicked(){
     if(settingsDrawerFlag.value === false){
@@ -272,274 +272,273 @@ function clearButtonClicked(){
   ref_input.value = ''
 }
 
-  // 示例数据
-  const rawData = ref([])
+// 示例数据
+const rawData = ref([])
 
-  let ref_input = ref('')
+let ref_input = ref('')
   
-  // 处理表格数据
-  const tableData = computed(() => {
-    return rawData.value.map(item => ({
-      ...item,
-      // 统一用户信息访问路径
-      user: item.user || item.tweet?.author
-    }))
-  })
+// 处理表格数据
+const tableData = computed(() => {
+  return rawData.value.map(item => ({
+    ...item,
+    // 统一用户信息访问路径
+    user: item.user || item.tweet?.author
+  }))
+})
   
-  // 格式化数字
-  const formatNumber = (num) => {
-    if (!num) return '0'
-    if (num >= 1000000) {
-      return (num / 1000000).toFixed(1) + 'M'
-    } else if (num >= 1000) {
-      return (num / 1000).toFixed(1) + 'K'
-    }
-    return num.toString()
+// 格式化数字
+const formatNumber = (num) => {
+  if (!num) return '0'
+  if (num >= 1000000) {
+    return (num / 1000000).toFixed(1) + 'M'
+  } else if (num >= 1000) {
+    return (num / 1000).toFixed(1) + 'K'
   }
+  return num.toString()
+}
   
-  // 格式化日期
-  const formatDate = (dateStr) => {
-    if (!dateStr) return 'Unknown'
-    try {
-      const date = new Date(dateStr)
-      return date.toLocaleString('en-US')
-    } catch {
-      return dateStr
-    }
+// 格式化日期
+const formatDate = (dateStr) => {
+  if (!dateStr) return 'Unknown'
+  try {
+    const date = new Date(dateStr)
+    return date.toLocaleString('en-US')
+  } catch {
+    return dateStr
   }
+}
   
-  // 获取图片宽度
-  const getImageWidth = (count) => {
-    if (count === 1) return '100%'
-    if (count === 2) return '48%'
-    return '31%'
-  }
+// 获取图片宽度
+const getImageWidth = (count) => {
+  if (count === 1) return '100%'
+  if (count === 2) return '48%'
+  return '31%'
+}
   
-  // 打开链接
-  const openLink = (data) => {
-    if(data?.tweet?.url){
-      let urlObject = new URL(data?.tweet?.url)
-      window.open(x_open_link_prefix.value + urlObject.pathname, '_blank')
-    }else if (data?.user?.url){
-      let urlObject = new URL(data?.user?.url)
-      window.open(x_open_link_prefix.value + urlObject.pathname, '_blank')
-    }else{
-      ElMessage.warning('the url is null.')
-    }
+// 打开链接
+const openLink = (data) => {
+  if(data?.tweet?.url){
+    let urlObject = new URL(data?.tweet?.url)
+    window.open(x_open_link_prefix.value + urlObject.pathname, '_blank')
+  }else if (data?.user?.url){
+    let urlObject = new URL(data?.user?.url)
+    window.open(x_open_link_prefix.value + urlObject.pathname, '_blank')
+  }else{
+    ElMessage.warning('the url is null.')
   }
+}
   
-  // 表格行样式
-  const tableRowClassName = ({ row }) => {
-    return row.tweet ? 'tweet-row' : 'user-row'
-  }
+// 表格行样式
+const tableRowClassName = ({ row }) => {
+  return row.tweet ? 'tweet-row' : 'user-row'
+}
 
-  function processAltText(obj) {
+function processAltText(obj) {
   // 检查对象结构是否存在
   if (!obj || !obj.tweet || !obj.tweet.media || !obj.tweet.media.photos) {
     return '';
   }
-  
+
   const photos = obj.tweet.media.photos;
-  
+
   // 如果没有照片，返回空字符串
   if (photos.length === 0) {
     return '';
   }
-  
+
   // 处理每个照片的altText
   const results = photos.map((photo, index) => {
     const altText = photo.altText || '';
     return `${index + 1}:${altText}`;
   });
-  
+
   // 用换行符连接所有结果
   return results.join('\n');
 }
-  </script>
+</script>
   
-  <style scoped>
-  .twitter-table-container {
-    margin-top: 20px;
-    padding: 20px;
-    background: #f8f9fa;
-    border-radius: 8px;
-  }
-  
-  .user-info {
-    padding: 12px 0;
-  }
-  
-  .user-header {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    margin-bottom: 12px;
-  }
-  
-  .user-details {
-    flex: 1;
-  }
-  
-  .user-name-row {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    margin-bottom: 4px;
-  }
-  
-  .display-name {
-    font-weight: 600;
-    font-size: 16px;
-    color: #0f1419;
-  }
-  
-  .screen-name {
-    color: #536471;
-    font-size: 14px;
-  }
-  
-  .verification-badge {
-    background: #1d9bf0 !important;
-    color: white !important;
-    border: none;
-  }
-  
-  .user-stats {
-    display: flex;
-    gap: 16px;
-    margin-bottom: 12px;
-  }
-  
-  .stat-item {
-    display: flex;
-    align-items: baseline;
-    gap: 4px;
-  }
-  
-  .stat-item strong {
-    font-weight: 600;
-    color: #0f1419;
-  }
-  
-  .stat-label {
-    color: #536471;
-    font-size: 13px;
-  }
-  
-  .user-bio {
-    color: #0f1419;
-    line-height: 1.4;
-    margin-bottom: 8px;
-    white-space: pre-wrap;
-  }
-  
-  .user-location {
-    display: flex;
-    align-items: center;
-    gap: 4px;
-    color: #536471;
-    font-size: 14px;
-  }
-  
-  .tweet-content {
-    padding: 12px 0;
-  }
-  
-  .tweet-text {
-    color: #0f1419;
-    line-height: 1.5;
-    margin-bottom: 12px;
-    white-space: pre-wrap;
-  }
-  
-  .tweet-media {
-    display: flex;
-    gap: 4px;
-    margin-bottom: 12px;
-    flex-wrap: wrap;
-  }
-  
-  .tweet-image {
-    border-radius: 8px;
-    cursor: pointer;
-    transition: transform 0.2s;
-  }
-  
-  .tweet-image:hover {
-    transform: scale(1.02);
-  }
-  
-  .tweet-actions {
-    display: flex;
-    gap: 20px;
-    color: #536471;
-  }
-  
-  .action-item {
-    display: flex;
-    align-items: center;
-    gap: 4px;
-    cursor: pointer;
-    transition: color 0.2s;
-  }
-  
-  .action-item:hover {
-    color: #1d9bf0;
-  }
-  
-  .no-tweet {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    color: #536471;
-    padding: 20px;
-    justify-content: center;
-  }
-  
-  .time-info {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    font-size: 13px;
-  }
-  
-  .join-time, .tweet-time, .tweet-views {
-    display: flex;
-    align-items: center;
-    gap: 4px;
-    color: #536471;
-  }
-  
-  /* 表格行样式 */
-  :deep(.user-row) {
-    background-color: #f8f9fa;
-  }
-  
-  :deep(.tweet-row) {
-    background-color: white;
-  }
-  
-  :deep(.el-table__row) {
-    border-bottom: 1px solid #e1e8ed;
-  }
-  
-  :deep(.el-table__row:hover) {
-    background-color: #f7f9fa !important;
-  }
-  
-  :deep(.el-table__header) {
-    background-color: #ffffff;
-  }
-  
-  :deep(.el-table__header th) {
-    background-color: #ffffff;
-    color: #0f1419;
-    font-weight: 600;
-    border-bottom: 2px solid #e1e8ed;
-  }
+<style scoped>
+.twitter-table-container {
+  margin-top: 20px;
+  padding: 20px;
+  background: #f8f9fa;
+  border-radius: 8px;
+}
 
-  .tweet-media-alttext {
-    color: #5f5b5b;
-  }
-  </style>
-  
+.user-info {
+  padding: 12px 0;
+}
+
+.user-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.user-details {
+  flex: 1;
+}
+
+.user-name-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 4px;
+}
+
+.display-name {
+  font-weight: 600;
+  font-size: 16px;
+  color: #0f1419;
+}
+
+.screen-name {
+  color: #536471;
+  font-size: 14px;
+}
+
+.verification-badge {
+  background: #1d9bf0 !important;
+  color: white !important;
+  border: none;
+}
+
+.user-stats {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 12px;
+}
+
+.stat-item {
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+}
+
+.stat-item strong {
+  font-weight: 600;
+  color: #0f1419;
+}
+
+.stat-label {
+  color: #536471;
+  font-size: 13px;
+}
+
+.user-bio {
+  color: #0f1419;
+  line-height: 1.4;
+  margin-bottom: 8px;
+  white-space: pre-wrap;
+}
+
+.user-location {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  color: #536471;
+  font-size: 14px;
+}
+
+.tweet-content {
+  padding: 12px 0;
+}
+
+.tweet-text {
+  color: #0f1419;
+  line-height: 1.5;
+  margin-bottom: 12px;
+  white-space: pre-wrap;
+}
+
+.tweet-media {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+}
+
+.tweet-image {
+  border-radius: 8px;
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+
+.tweet-image:hover {
+  transform: scale(1.02);
+}
+
+.tweet-actions {
+  display: flex;
+  gap: 20px;
+  color: #536471;
+}
+
+.action-item {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  cursor: pointer;
+  transition: color 0.2s;
+}
+
+.action-item:hover {
+  color: #1d9bf0;
+}
+
+.no-tweet {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #536471;
+  padding: 20px;
+  justify-content: center;
+}
+
+.time-info {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-size: 13px;
+}
+
+.join-time, .tweet-time, .tweet-views {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  color: #536471;
+}
+
+/* 表格行样式 */
+:deep(.user-row) {
+  background-color: #f8f9fa;
+}
+
+:deep(.tweet-row) {
+  background-color: white;
+}
+
+:deep(.el-table__row) {
+  border-bottom: 1px solid #e1e8ed;
+}
+
+:deep(.el-table__row:hover) {
+  background-color: #f7f9fa !important;
+}
+
+:deep(.el-table__header) {
+  background-color: #ffffff;
+}
+
+:deep(.el-table__header th) {
+  background-color: #ffffff;
+  color: #0f1419;
+  font-weight: 600;
+  border-bottom: 2px solid #e1e8ed;
+}
+
+.tweet-media-alttext {
+  color: #5f5b5b;
+}
+</style>

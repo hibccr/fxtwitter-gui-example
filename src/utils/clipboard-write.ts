@@ -19,4 +19,3 @@ export async function copyStringToClipboard(str){
         console.error(e)
     }
 }
-
