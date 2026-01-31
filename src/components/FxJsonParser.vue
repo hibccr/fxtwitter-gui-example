@@ -174,6 +174,14 @@
                 >
                   Open
                 </el-button>
+                <br>
+                <el-button
+                  v-if="row.user?.about_account"
+                  size="small"
+                  @click="openAboutThisAccount(row)"
+                >
+                  About Account
+                </el-button>
               </template>
             </el-table-column>
           </el-table>
@@ -203,11 +211,32 @@
                 </div>
             </template>
         </el-drawer>
+        <el-dialog
+          v-model="aboutThisAccountDialogFlag"
+          title="About this account"
+        >
+          <span>Based in {{ aboutThisAccountObject?.based_in }}</span>
+          <br>
+          <span>Created country accurate: {{ aboutThisAccountObject?.created_country_accurate? "True" : "False" }}</span>
+          <br>
+          <span>Source: {{ aboutThisAccountObject?.source }}</span>
+          <br>
+          <span>Username changed {{ aboutThisAccountObject?.username_changes?.count }} times, last changed at {{ aboutThisAccountObject?.username_changes?.last_changed_at }}</span>
+          <template #footer>
+            <div>
+              <el-button
+                @click="closeAboutThisAccount()"
+              >
+                Close
+              </el-button>
+            </div>
+          </template>
+        </el-dialog>
     </div>
 </template>
   
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, reactive } from 'vue'
 import { ElMessage } from 'element-plus'
 import {
   User,
@@ -226,6 +255,9 @@ import { useParserSettingsStore } from '@/store/parser-settings'
 import { storeToRefs } from 'pinia'
 
 let settingsDrawerFlag = ref(false)
+let aboutThisAccountDialogFlag = ref(false)
+
+let aboutThisAccountObject = reactive({})
 
 let parserSettingsStore = useParserSettingsStore()
 let { x_open_link_prefix,
@@ -354,6 +386,16 @@ function processAltText(obj) {
 
   // 用换行符连接所有结果
   return results.join('\n');
+}
+
+function openAboutThisAccount(obj){
+  aboutThisAccountDialogFlag.value = true
+  Object.assign(aboutThisAccountObject, obj?.user?.about_account)
+}
+
+function closeAboutThisAccount(){
+  aboutThisAccountDialogFlag.value = false
+  Object.assign({}, aboutThisAccountObject)
 }
 </script>
   
