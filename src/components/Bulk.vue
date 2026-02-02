@@ -18,7 +18,9 @@ let urlDataObjectArray = reactive([])
 let mediaListData = reactive([])
 
 let bulkSettingsStore = useBulkSettingsStore()
-let { focus_download_orig_img } = storeToRefs(bulkSettingsStore)
+let { focus_download_orig_img,
+      use_v2_process_function,
+      max_retry_times_v2 } = storeToRefs(bulkSettingsStore)
 
 function removeHashComments(text) {
     // 1. Delete a entity line
@@ -84,6 +86,44 @@ async function axiosRequest(urlDataObjectArray){
     await sleep(1000) //avoid of api limit
     }
     processMessage.value = ''
+}
+
+async function axiosRequestV2(urlDataObjectArray) {
+    for (const element of urlDataObjectArray){
+        processMessage.value = 'Waiting... ' + element.url
+        let axiosRetryTimes = max_retry_times_v2.value
+        let axiosResult = await axiosRequestRetryV2(element.apiUrl, axiosRetryTimes, processMessage.value)
+        if (axiosResult?.status){
+            element.axiosResponse = axiosResult
+        } else {
+            element.axiosError = axiosResult
+        }
+        await sleep(1000)
+    }
+    processMessage.value = ''
+}
+
+async function axiosRequestRetryV2(url, retry_times, process_message_prefix) {
+    const now_retry_times = max_retry_times_v2.value - retry_times;
+    let lastError = null; 
+
+    try {
+        processMessage.value = `${process_message_prefix} (Retry: ${now_retry_times} times)`;
+        const response = await axios.get(url);
+        return response;
+    } catch (error) {
+        lastError = error;
+
+        if (error.response) {
+            return error;
+        }
+
+        if (retry_times > 0) {
+            return await axiosRequestRetryV2(url, retry_times - 1, process_message_prefix);
+        }
+
+        return lastError;
+    }
 }
 
 function outputToBox(){
@@ -239,7 +279,11 @@ async function bulkButtonClicked(){
     console.log('4 Finish. Result:')
     console.log(urlDataObjectArray)
     console.log('5. Send Request to FxEmbed')
-    await axiosRequest(urlDataObjectArray)
+    if (use_v2_process_function.value) {
+        await axiosRequestV2(urlDataObjectArray)
+    } else {
+        await axiosRequest(urlDataObjectArray)
+    }
     console.log(urlDataObjectArray)
     console.log('6. Output')
     outputToBox()
@@ -314,6 +358,21 @@ async function bulkButtonClicked(){
                     <el-switch
                         v-model="focus_download_orig_img"
                     />
+                    <br>
+                    Use Process Function Version 2:
+                    <el-switch
+                        v-model="use_v2_process_function"
+                    />
+                    <br>
+                    <span
+                        v-show="use_v2_process_function">
+                    Max Retry Times (V2):
+                    <el-input-number
+                        v-model="max_retry_times_v2"
+                        :min="0"
+                        :max="99"
+                    />
+                    </span>
                 </div>
             </template>
         </el-drawer>
