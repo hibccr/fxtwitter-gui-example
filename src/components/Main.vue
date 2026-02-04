@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import axios from 'axios';
-import { ref, reactive, computed } from 'vue';
+import { ref, reactive, computed, onMounted } from 'vue';
 import { flatten } from 'flat';
 import { useSettingsStore } from '@/store/settings';
 import { storeToRefs } from 'pinia';
@@ -26,6 +26,8 @@ let tweet_username = ref('');
 let tweet_statusid = ref('');
 let willrequrl = ref('');
 
+let timezone_input = ref('');
+
 // use pinia instead of this
 let settingsStore = useSettingsStore()
 let {show_res_json,
@@ -34,7 +36,8 @@ let {show_res_json,
     show_tweet,
     focus_download_orig_img,
     show_jump_to_author_button,
-    jump_to_author_url_prefix} = storeToRefs(settingsStore)
+    jump_to_author_url_prefix,
+    set_timezone } = storeToRefs(settingsStore)
 
 let open_settings_drawer = ref(false);
 
@@ -64,6 +67,10 @@ let apiTypeInUser = computed(
         }
     }
 )
+
+onMounted(() => {
+    timezone_input.value = set_timezone.value
+})
 
 
 function getOriginImageUrl(obj){
@@ -305,6 +312,62 @@ function pasteButtonClicked(){
             })
         })
 }
+
+function timeStampProcess(timestamp){
+    if (timestamp == undefined || timestamp == null || timestamp == ''){
+        return ''
+    }
+
+    let dateObject = new Date(timestamp)
+    let formatOptions = {
+        weekday: 'short',
+        month: 'short',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+        timeZone: set_timezone.value,
+        hour12: false,
+        timeZoneName: 'short',
+        year: 'numeric'
+    }
+
+    let result = ''
+    try{
+        result = new Intl.DateTimeFormat('en-US', formatOptions).format(dateObject)
+    }catch (error){
+        set_timezone.value = 'UTC'
+        ElMessage({
+            message: 'timezone is invaild.',
+            type: 'error'
+        })
+    }
+    return result
+}
+
+function timeZoneAssert(timezone){
+    let dateObject = new Date('2020-01-01T00:00:00Z')
+    try {
+        new Intl.DateTimeFormat('en-US', {
+            timeZone: timezone
+        }).format(dateObject)
+    } catch(error) {
+        return false
+    }
+    return true
+}
+
+function timeZoneElInputBlurHandle(){
+    if (timeZoneAssert(timezone_input.value)){
+        set_timezone.value = timezone_input.value
+    }else{
+        set_timezone.value = 'UTC'
+        ElMessage({
+            message: 'timezone is invaild.',
+            type: 'error'
+        })
+    }
+}
 </script>
 
 <template>
@@ -366,14 +429,14 @@ function pasteButtonClicked(){
             <br>
             <span class="gray-text">Description:</span> {{ res_json?.tweet?.author?.description }}
             <br>
-            <span class="gray-text">Joined at</span> {{ res_json?.tweet?.author?.joined }} <span class="gray-text">Followers:</span> {{ res_json?.tweet?.author?.followers }} <span class="gray-text">Following:</span> {{ res_json?.tweet?.author?.following }} <span class="gray-text">Tweets:</span> {{ res_json?.tweet?.author?.tweets }}
+            <span class="gray-text">Joined at</span> {{ timeStampProcess(res_json?.tweet?.author?.joined) }} <span class="gray-text">Followers:</span> {{ res_json?.tweet?.author?.followers }} <span class="gray-text">Following:</span> {{ res_json?.tweet?.author?.following }} <span class="gray-text">Tweets:</span> {{ res_json?.tweet?.author?.tweets }}
         </p>
         <p v-if="apiTypeInUser">
             <span class="gray-text">User:</span> {{ res_json?.user?.name }} (@{{ res_json?.user?.screen_name }}) [ID:{{ res_json?.user?.id }}] <a :href="getJumpLink()" target="_blank" v-if="show_jump_to_author_button && !(is_api_error)">Jump</a><span v-if="show_jump_to_author_button && !(is_api_error)">&nbsp;</span><span class="gray-text" v-if="getWebsiteUrl() != undefined && getWebsiteUrl() != ''">Website:</span> {{ getWebsiteUrl() }}
             <br>
             <span class="gray-text">Description:</span> {{ res_json?.user?.description }}
             <br>
-            <span class="gray-text">Joined at</span> {{ res_json?.user?.joined }} <span class="gray-text">Followers:</span> {{ res_json?.user?.followers }} <span class="gray-text">Following:</span> {{ res_json?.user?.following }} <span class="gray-text">Tweets:</span> {{ res_json?.user?.tweets }}
+            <span class="gray-text">Joined at</span> {{ timeStampProcess(res_json?.user?.joined) }} <span class="gray-text">Followers:</span> {{ res_json?.user?.followers }} <span class="gray-text">Following:</span> {{ res_json?.user?.following }} <span class="gray-text">Tweets:</span> {{ res_json?.user?.tweets }}
         </p>
     </div>
     <p v-show="show_author">
@@ -394,7 +457,7 @@ function pasteButtonClicked(){
                 &nbsp;
                 Views: {{ res_json?.tweet?.views }}
                 <br>
-                Time: {{ res_json?.tweet?.created_at }}
+                Time: {{ timeStampProcess(res_json?.tweet?.created_at) }}
                 &nbsp;
                 From: {{ res_json?.tweet?.source }}
             </p>
@@ -511,7 +574,7 @@ function pasteButtonClicked(){
                     Show Tweet:
                     <el-switch
                         v-model="show_tweet"
-                    />
+                        />
                 </p>
                 <p>
                     Focus Download Original Image:
@@ -529,6 +592,14 @@ function pasteButtonClicked(){
                     <el-input
                         v-model="jump_to_author_url_prefix"
                         style="width: 200px;"
+                        />
+                </p>
+                <p>
+                    Timezone:
+                    <el-input
+                        style="width: 200px;"
+                        v-model="timezone_input"
+                        @blur="timeZoneElInputBlurHandle"
                         />
                 </p>
                 <p>

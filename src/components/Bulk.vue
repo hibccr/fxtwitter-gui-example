@@ -93,7 +93,8 @@ async function axiosRequestV2(urlDataObjectArray) {
         processMessage.value = 'Waiting... ' + element.url
         let axiosRetryTimes = max_retry_times_v2.value
         let axiosResult = await axiosRequestRetryV2(element.apiUrl, axiosRetryTimes, processMessage.value)
-        if (axiosResult?.status){
+        console.log(axiosResult)
+        if (axiosResult?.status && axiosResult.status >= 200 && axiosResult.status < 300){
             element.axiosResponse = axiosResult
         } else {
             element.axiosError = axiosResult

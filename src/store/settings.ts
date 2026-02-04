@@ -9,6 +9,7 @@ export const useSettingsStore = defineStore('settings',()=>{
     let focus_download_orig_img = ref(true);
     let show_jump_to_author_button = ref(true);
     let jump_to_author_url_prefix = ref('https://twitter.com/');
+    let set_timezone = ref('UTC');
 
     return {show_res_json,
         show_debug_info,
@@ -16,7 +17,8 @@ export const useSettingsStore = defineStore('settings',()=>{
         show_tweet,
         focus_download_orig_img,
         show_jump_to_author_button,
-        jump_to_author_url_prefix
+        jump_to_author_url_prefix,
+        set_timezone
     }
 },{
     persist: true,
