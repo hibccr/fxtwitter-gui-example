@@ -93,7 +93,6 @@ async function axiosRequestV2(urlDataObjectArray) {
         processMessage.value = 'Waiting... ' + element.url
         let axiosRetryTimes = max_retry_times_v2.value
         let axiosResult = await axiosRequestRetryV2(element.apiUrl, axiosRetryTimes, processMessage.value)
-        console.log(axiosResult)
         if (axiosResult?.status && axiosResult.status >= 200 && axiosResult.status < 300){
             element.axiosResponse = axiosResult
         } else {
@@ -129,7 +128,6 @@ async function axiosRequestRetryV2(url, retry_times, process_message_prefix) {
 
 function outputToBox(){
     urlDataObjectArray.map((element) =>{
-        //console.log(element)
         if(element.axiosResponse == null || element.axiosResponse == undefined){
             if(element.axiosError == null || element.axiosError == undefined){
                 ref_output.value = ref_output.value + 'Error: Empty Result, url=' + element.apiUrl + '\n'
