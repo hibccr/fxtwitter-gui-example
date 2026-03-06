@@ -22,6 +22,42 @@ let { focus_download_orig_img,
       use_v2_process_function,
       max_retry_times_v2 } = storeToRefs(bulkSettingsStore)
 
+let validUrlPrefix = [
+    'x.com',
+    'www.x.com',
+    'sotwe.com',
+    'www.sotwe.com',
+    'twitter.com',
+    'www.twitter.com',
+    'mobile.twitter.com',
+    'xcancel.com',
+    'fxtwitter.com',
+    'fixupx.com',
+    'i.fixupx.com',
+    'vxtwitter.com',
+    'fixvx.com'
+]
+
+let reservedWords = [
+    /*
+     * This list has only been tested on Nitter instances,
+     * as I’m not sure exactly how many usernames Twitter actually retains.
+     * In practice, a large portion of the usernames in this list are valid on Nitter
+     * but appear to be invalid—at least that was the case when I accessed them.
+     */
+    'i',
+    'intent',
+    'home', //can be seen via the API, but it has already been designated as the homepage and should therefore be retained.
+    'explore',
+    'about',
+    'notifications',
+    'messages',
+    'settings',
+    'search',
+    'tos',
+    'privacy'
+]
+
 function removeHashComments(text) {
     // 1. Delete a entity line
     let result = text.replace(/^#.*\n?/gm, '');
@@ -68,14 +104,65 @@ function getDomain(urlString) {
 function generateRequest(url_array){
     urlDataObjectArray.length = 0
     url_array.map((element) => {
-        urlDataObjectArray.push(buildUrlDataObject(element))
+        if (isReservedWordUrl(element)) {
+            // Create a special error object for reserved word violations
+            urlDataObjectArray.push({
+                url: element,
+                apiUrl: null,
+                axiosResponse: null,
+                axiosError: null,
+                otherError: 'reserved_word'
+            })
+        } else {
+            urlDataObjectArray.push(buildUrlDataObject(element))
+        }
     })
+}
+
+function isReservedWordUrl(urlString) {
+    try {
+        const url = new URL(urlString);
+        const pathParts = url.pathname.split('/').filter(Boolean);
+        
+        // Check if the first part of the path is a reserved word
+        if (pathParts.length > 0) {
+            const firstPath = pathParts[0].toLowerCase();
+            
+            // If the first part is a reserved word
+            if (reservedWords.includes(firstPath)) {
+                // Check if it is a valid subpath
+                if (pathParts.length >= 2) {
+                    const secondPath = pathParts[1].toLowerCase();
+                    
+                    // Allowed valid path patterns
+                    //const validPatterns = ['status', 'user'];
+                    const validPatterns = ['status'];
+                    
+                    // If the second part is a valid pattern, then it's not a reserved word error
+                    if (validPatterns.includes(secondPath)) {
+                        return false;
+                    }
+                }
+                
+                // All other cases are reserved word errors
+                return true;
+            }
+        }
+        
+        return false;
+    } catch (error) {
+        return false;
+    }
 }
 
 const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms))
 
 async function axiosRequest(urlDataObjectArray){
     for(const element of urlDataObjectArray){
+        //skip empty apiUrl
+        if(element?.apiUrl === null || element?.apiUrl === ''){
+            continue
+        }
         processMessage.value = 'Waiting... ' + element.url 
         try{
             const response = await axios.get(element.apiUrl)
@@ -90,6 +177,10 @@ async function axiosRequest(urlDataObjectArray){
 
 async function axiosRequestV2(urlDataObjectArray) {
     for (const element of urlDataObjectArray){
+        //skip empty apiUrl
+        if(element?.apiUrl === null || element?.apiUrl === ''){
+            continue
+        }
         processMessage.value = 'Waiting... ' + element.url
         let axiosRetryTimes = max_retry_times_v2.value
         let axiosResult = await axiosRequestRetryV2(element.apiUrl, axiosRetryTimes, processMessage.value)
@@ -128,6 +219,11 @@ async function axiosRequestRetryV2(url, retry_times, process_message_prefix) {
 
 function outputToBox(){
     urlDataObjectArray.map((element) =>{
+        if(element?.otherError === 'reserved_word'){
+            ref_output.value = ref_output.value + 'Error: System: This url is not supported, url=' + element.url + '\n'
+            return
+        }
+
         if(element.axiosResponse == null || element.axiosResponse == undefined){
             if(element.axiosError == null || element.axiosError == undefined){
                 ref_output.value = ref_output.value + 'Error: Empty Result, url=' + element.apiUrl + '\n'
@@ -199,21 +295,6 @@ async function bulkButtonClicked(){
         formattedURLResult3,
         formattedURLResult4;
     
-    let validUrlPrefix = [
-        'x.com',
-        'www.x.com',
-        'sotwe.com',
-        'www.sotwe.com',
-        'twitter.com',
-        'www.twitter.com',
-        'xcancel.com',
-        'fxtwitter.com',
-        'fixupx.com',
-        'i.fixupx.com',
-        'vxtwitter.com',
-        'fixvx.com'
-    ]
-    
     console.log('System Begin at ' + new Date())
     console.log('1. removeHashComments')
     removeHashCommentsResult = removeHashComments(ref_input.value)
@@ -238,7 +319,7 @@ async function bulkButtonClicked(){
                 return element
             }else{
                 element = ''
-                console.log('3-1-1 Result: (Clear Invaild Input)')
+                console.log('3-1-1 Result: (Clear Invalid Input)')
                 return element
             }
         }

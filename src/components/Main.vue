@@ -245,6 +245,22 @@ if(apiType.value === 'tweet'){
     willrequrl.value = buildApiUrlv2(tweet_username.value, null)
 }
 
+// Exclude reserved username terms such as "i", "intent", "home", etc.
+const twitterReservedUsername = new Set([
+    'i',
+    'intent',
+    'home'
+])
+
+if(twitterReservedUsername.has(tweet_username.value.toLowerCase())){
+    if(tweet_statusid.value === '' || tweet_statusid.value === null){
+        is_api_error.value = true
+        api_error_status.value = -1
+        api_error_msg.value = 'The username is reserved, and not found a vaild status ID.'
+        return
+    }
+}
+
 await fetchData(willrequrl.value)
 
 let flatedJson = flatten(res_json)
