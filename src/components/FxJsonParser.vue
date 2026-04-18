@@ -112,6 +112,7 @@
                       :href="video.url"
                       rel="noreferrer"
                       target="_blank"
+                      style="width: 100%;"
                     >
                       {{ video.url }}
                     </a>
