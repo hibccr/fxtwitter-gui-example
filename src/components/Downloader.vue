@@ -87,7 +87,7 @@
           </template>
         </el-table-column>
         
-        <el-table-column prop="mediaId" label="Status ID" width="150">
+        <el-table-column prop="mediaId" label="ID" width="150">
           <template #default="{ row }">
             <span :class="row.status">{{ row.mediaId }}</span>
           </template>
@@ -531,7 +531,7 @@ const clearLogs = () => {
 }
 
 // Watch for changes in the store
-watch(() => store.fxtwitterObjects, (newObjects) => {
+watch(() => store.mediaObjects, (newObjects) => {
   if (newObjects && Array.isArray(newObjects)) {
     // Convert store objects to download items
     const newItems = newObjects.map(obj => ({
@@ -564,8 +564,8 @@ watch(() => store.fxtwitterObjects, (newObjects) => {
 
 // Initialize with any existing store data
 onMounted(() => {
-  if (store.fxtwitterObjects && store.fxtwitterObjects.length > 0) {
-    const initialItems = store.fxtwitterObjects.map(obj => ({
+  if (store.mediaObjects && store.mediaObjects.length > 0) {
+    const initialItems = store.mediaObjects.map(obj => ({
       id: obj.id, // This is the unique internal ID for tracking
       mediaId: obj.id, // This is the media ID shown in the table
       filename: generateFilename(obj),

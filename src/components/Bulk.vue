@@ -373,9 +373,9 @@ async function bulkButtonClicked(){
 }
 
 function sendToDownloaderButtonClicked(){
-    sharedataDownloaderStore.fxtwitterObjects.length = 0
+    sharedataDownloaderStore.mediaObjects.length = 0
     mediaListData.forEach(element => {
-        sharedataDownloaderStore.fxtwitterObjects.push(element)
+        sharedataDownloaderStore.mediaObjects.push(element)
     });
     ElMessage({
         message: 'Finished, please open Downloader page to download',

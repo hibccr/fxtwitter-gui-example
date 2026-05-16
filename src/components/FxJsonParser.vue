@@ -5,6 +5,7 @@
           Input:
           <el-button @click="inputButtonClicked">Click</el-button>
           <el-button @click="clearButtonClicked">Clear</el-button>
+          <el-button @click="sendToDownloaderButtonClicked">Send to Downloader</el-button>
           <el-button @click="settingsButtonClicked">Settings</el-button>
           <el-input v-model="ref_input" style="width: 100%;" :rows="5" type="textarea" />
         </p>
@@ -254,11 +255,14 @@ import {
 } from '@element-plus/icons-vue'
 import { useParserSettingsStore } from '@/store/parser-settings'
 import { storeToRefs } from 'pinia'
+import { useSharedataDownloaderStore } from '@/store/sharedata-downloader'
 
 let settingsDrawerFlag = ref(false)
 let aboutThisAccountDialogFlag = ref(false)
 
 let aboutThisAccountObject = reactive({})
+
+let sharedataDownloaderStore = useSharedataDownloaderStore()
 
 let parserSettingsStore = useParserSettingsStore()
 let { x_open_link_prefix,
@@ -397,6 +401,19 @@ function openAboutThisAccount(obj){
 function closeAboutThisAccount(){
   aboutThisAccountDialogFlag.value = false
   Object.assign({}, aboutThisAccountObject)
+}
+
+function sendToDownloaderButtonClicked(){
+    sharedataDownloaderStore.mediaObjects.length = 0
+    rawData.value.map((rawSingleData) => {
+      rawSingleData.tweet?.media?.all.map((element) => {
+        sharedataDownloaderStore.mediaObjects.push(element)
+      })
+    })
+    ElMessage({
+        message: 'Finished, please open Downloader page to download',
+        type: 'success'
+    })
 }
 </script>
   
