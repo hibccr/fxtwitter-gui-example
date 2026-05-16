@@ -11,6 +11,7 @@ import {
                 <nav>
                     <RouterLink to="/">Index</RouterLink>&nbsp;
                     <RouterLink to="/bulk">Bulk</RouterLink>&nbsp;
+                    <RouterLink to="/downloader">Downloader</RouterLink>&nbsp;
                     <el-dropdown>
                       <span class="el-dropdown-link dropdown-toolbox">
                         Toolbox<el-icon class="el-icon--right"><arrow-down /></el-icon>

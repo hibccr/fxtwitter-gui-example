@@ -8,6 +8,7 @@ import Main from './components/Main.vue'
 import Bulk from './components/Bulk.vue'
 import AppendOrigParam from './components/AppendOrigParam.vue'
 import FxJsonParser from './components/FxJsonParser.vue'
+import Downloader from './components/Downloader.vue'
 
 //createApp(App).mount('#app')
 
@@ -20,7 +21,8 @@ const routes = [
     {path: '/', component: Main},
     {path: '/bulk', component: Bulk},
     {path: '/append-orig-param', component: AppendOrigParam},
-    {path: '/fxjson-parser', component: FxJsonParser}
+    {path: '/fxjson-parser', component: FxJsonParser},
+    {path: '/downloader', component: Downloader}
 ]
 
 const router = createRouter({

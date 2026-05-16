@@ -8,6 +8,7 @@ import { copyStringToClipboard } from '@/utils/clipboard-write'
 import { useBulkSettingsStore } from '@/store/bulk-settings'
 import { storeToRefs } from 'pinia'
 import { getOriginImageUrl } from '@/utils/url-processing'
+import { useSharedataDownloaderStore } from '@/store/sharedata-downloader'
 
 let ref_input = ref('')
 let ref_output = ref('')
@@ -21,6 +22,8 @@ let bulkSettingsStore = useBulkSettingsStore()
 let { focus_download_orig_img,
       use_v2_process_function,
       max_retry_times_v2 } = storeToRefs(bulkSettingsStore)
+
+let sharedataDownloaderStore = useSharedataDownloaderStore()
 
 let validUrlPrefix = [
     'x.com',
@@ -368,6 +371,17 @@ async function bulkButtonClicked(){
     console.log('6. Output')
     outputToBox()
 }
+
+function sendToDownloaderButtonClicked(){
+    sharedataDownloaderStore.fxtwitterObjects.length = 0
+    mediaListData.forEach(element => {
+        sharedataDownloaderStore.fxtwitterObjects.push(element)
+    });
+    ElMessage({
+        message: 'Finished, please open Downloader page to download',
+        type: 'success'
+    })
+}
 </script>
 
 <template>
@@ -377,6 +391,7 @@ async function bulkButtonClicked(){
             <el-button @click="bulkButtonClicked">Click</el-button>
             <el-button @click="pasteButtonClicked">Paste</el-button>
             <el-button @click="clearButtonClicked">Clear</el-button>
+            <el-button @click="sendToDownloaderButtonClicked">Send To Downloader</el-button>
             <el-button @click="openSettingsDrawerButtonClicked">Settings</el-button>
             <span>
                 {{ processMessage }}
