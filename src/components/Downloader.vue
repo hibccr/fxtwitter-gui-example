@@ -444,11 +444,11 @@ const downloadAllAsZip = async () => {
 
     // Generate and download the zip
     const zipBlob = await zip.generateAsync({ type: 'blob' }, (metadata) => {
-      // Update progress during zip generation (only log every 5%)
+      // Update progress during zip generation (only log every 5% or when reaching 100%)
       const progress = Math.round(metadata.percent)
       
-      // Only log if progress increased by at least 5%
-      if (progress >= lastZipProgress.value + 5 || progress === 100) {
+      // Only log if progress increased by at least 5% or if it's exactly 100%
+      if (progress >= lastZipProgress.value + 5 || (progress === 100 && lastZipProgress.value !== 100)) {
         lastZipProgress.value = progress
         addLog(`ZIP creation progress: ${progress}%`, 'info')
       }
