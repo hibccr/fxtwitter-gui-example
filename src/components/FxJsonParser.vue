@@ -4,6 +4,7 @@
         <p>
           Input:
           <el-button @click="inputButtonClicked">Click</el-button>
+          <el-button @click="pasteButtonClicked">Paste</el-button>
           <el-button @click="clearButtonClicked">Clear</el-button>
           <el-button @click="sendToDownloaderButtonClicked">Send to Downloader</el-button>
           <el-button @click="settingsButtonClicked">Settings</el-button>
@@ -256,6 +257,7 @@ import {
 import { useParserSettingsStore } from '@/store/parser-settings'
 import { storeToRefs } from 'pinia'
 import { useSharedataDownloaderStore } from '@/store/sharedata-downloader'
+import { readClipboard } from '@/utils/clipboard-read'
 
 let settingsDrawerFlag = ref(false)
 let aboutThisAccountDialogFlag = ref(false)
@@ -414,6 +416,26 @@ function sendToDownloaderButtonClicked(){
         message: 'Finished, please open Downloader page to download',
         type: 'success'
     })
+}
+
+function pasteButtonClicked(){
+  readClipboard()
+        .then((clipboardData)=>{
+            if(clipboardData){
+                ref_input.value = clipboardData
+            }else{
+                ElMessage({
+                    message: 'Clipboard is empty or no permission.',
+                    type: 'error'
+                })
+            }
+        })
+        .catch((error)=>{
+            ElMessage({
+                message: 'Error: when use clipboard.',
+                type: 'error'
+            })
+        })
 }
 </script>
   
