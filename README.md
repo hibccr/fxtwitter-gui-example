@@ -38,3 +38,7 @@ npm run dev
 ```sh
 npm run build
 ```
+
+### Deploy on Cloudflare Workers
+
+To address the issue where `video.twimg.com` validates the `Referer` header, a `_headers` file is now provided in the `public` directory. This ensures that Cloudflare Workers include the `Referrer-Policy: no-referrer` response header when serving browser requests.
