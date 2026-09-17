@@ -38,7 +38,8 @@ let validUrlPrefix = [
     'fixupx.com',
     'i.fixupx.com',
     'vxtwitter.com',
-    'fixvx.com'
+    'fixvx.com',
+    'twitterviewer.net'
 ]
 
 let reservedWords = [
