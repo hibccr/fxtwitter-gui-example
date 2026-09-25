@@ -27,6 +27,7 @@ let tweet_statusid = ref('');
 let willrequrl = ref('');
 
 let timezone_input = ref('');
+let aboutThisAccount = ref(null);
 
 // use pinia instead of this
 let settingsStore = useSettingsStore()
@@ -157,6 +158,7 @@ async function fetchData(apiUrl) {
   try {
     const response = await axios.get(apiUrl);
     res_json = response.data;
+    aboutThisAccount.value = response.data?.user?.about_account ?? response.data?.tweet?.author?.about_account ?? null;
     res_json_text.value = JSON.stringify(res_json);
     console.log('Data Saved:', res_json);
     is_api_error.value = false;
@@ -225,6 +227,7 @@ mediaTableData.length = 0;
 
 res_json_text.value = '';
 res_json = {};
+aboutThisAccount.value = null;
 
 tweet_username.value = extractUsername(tweet_url.value)
 tweet_statusid.value = extractStatusId(tweet_url.value)
@@ -454,6 +457,13 @@ function timeZoneElInputBlurHandle(){
             <br>
             <span class="gray-text">Joined at</span> {{ timeStampProcess(res_json?.user?.joined) }} <span class="gray-text">Followers:</span> {{ res_json?.user?.followers }} <span class="gray-text">Following:</span> {{ res_json?.user?.following }} <span class="gray-text">Tweets:</span> {{ res_json?.user?.tweets }}
         </p>
+        <div v-if="aboutThisAccount" class="about-this-account">
+            <strong>About this account</strong>
+            <p>Based in: {{ aboutThisAccount.based_in ?? 'Unknown' }}</p>
+            <p>Created country accurate: {{ aboutThisAccount.created_country_accurate === true ? 'True' : aboutThisAccount.created_country_accurate === false ? 'False' : 'Unknown' }}</p>
+            <p>Source: {{ aboutThisAccount.source ?? 'Unknown' }}</p>
+            <p>Username changed {{ aboutThisAccount.username_changes?.count ?? 'Unknown' }} times, last changed at {{ aboutThisAccount.username_changes?.last_changed_at ?? 'Unknown' }}</p>
+        </div>
     </div>
     <p v-show="show_author">
         <el-avatar shape="square" :size="50" :src="getAvatarUrl()"></el-avatar>
@@ -628,6 +638,17 @@ function timeZoneElInputBlurHandle(){
 </template>
 
 <style lang="css" scoped>
+.about-this-account {
+    margin-top: 12px;
+    padding: 12px;
+    border: 1px solid #dcdfe6;
+    border-radius: 4px;
+}
+
+.about-this-account p {
+    margin: 6px 0 0;
+}
+
 .gray-text {
     color: #001aff;
 }
