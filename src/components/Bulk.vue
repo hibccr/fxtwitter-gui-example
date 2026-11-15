@@ -5,7 +5,7 @@ import axios from 'axios'
 import { readClipboard } from '@/utils/clipboard-read'
 import { ElMessage } from 'element-plus'
 import { copyStringToClipboard } from '@/utils/clipboard-write'
-import { useBulkSettingsStore } from '@/store/bulk-settings'
+import { useBulkSettingsStore, DEFAULT_VALID_URL_PREFIX } from '@/store/bulk-settings'
 import { storeToRefs } from 'pinia'
 import { getOriginImageUrl } from '@/utils/url-processing'
 import { useSharedataDownloaderStore } from '@/store/sharedata-downloader'
@@ -21,27 +21,26 @@ let mediaListData = reactive([])
 let bulkSettingsStore = useBulkSettingsStore()
 let { focus_download_orig_img,
       use_v2_process_function,
-      max_retry_times_v2 } = storeToRefs(bulkSettingsStore)
+      max_retry_times_v2,
+      valid_url_prefix } = storeToRefs(bulkSettingsStore)
 
 let sharedataDownloaderStore = useSharedataDownloaderStore()
 
-let validUrlPrefix = [
-    'x.com',
-    'www.x.com',
-    'sotwe.com',
-    'www.sotwe.com',
-    'twitter.com',
-    'www.twitter.com',
-    'mobile.twitter.com',
-    'xcancel.com',
-    'fxtwitter.com',
-    'fixupx.com',
-    'i.fixupx.com',
-    'vxtwitter.com',
-    'fixvx.com',
-    'twitterviewer.net',
-    'xxcancel.com'
-]
+// Edit as text: one domain per line (also accepts spaces / commas as separators).
+// Keep a raw draft so that blank lines / trailing newlines are not eaten while typing.
+let validUrlPrefixText = ref(valid_url_prefix.value.join('\n'))
+
+function updateValidUrlPrefixFromText(value) {
+    valid_url_prefix.value = String(value)
+        .split(/[\s,]+/)
+        .map((item) => item.trim().toLowerCase())
+        .filter(Boolean)
+}
+
+function resetValidUrlPrefix() {
+    valid_url_prefix.value = [...DEFAULT_VALID_URL_PREFIX]
+    validUrlPrefixText.value = DEFAULT_VALID_URL_PREFIX.join('\n')
+}
 
 let reservedWords = [
     /*
@@ -344,7 +343,7 @@ async function bulkButtonClicked(){
         console.log('Now Element:' + element)
         let domain = getDomain(element)
         console.log('DomainToLowerCase:'+ domain.toLowerCase())
-        if(validUrlPrefix.includes(domain.toLowerCase())){
+        if(valid_url_prefix.value.includes(domain.toLowerCase())){
             console.log('judge Statement: true')
             return element
         }else{
@@ -470,6 +469,20 @@ function sendToDownloaderButtonClicked(){
                         :max="99"
                     />
                     </span>
+                    <br>
+                    Valid URL Domain Prefix:
+                    <el-input
+                        v-model="validUrlPrefixText"
+                        type="textarea"
+                        :rows="6"
+                        placeholder="One domain per line, e.g. x.com"
+                        spellcheck="false"
+                        autocomplete="off"
+                        autocorrect="off"
+                        autocapitalize="off"
+                        @input="updateValidUrlPrefixFromText"
+                    />
+                    <el-button size="small" @click="resetValidUrlPrefix">Reset to default</el-button>
                 </div>
             </template>
         </el-drawer>
