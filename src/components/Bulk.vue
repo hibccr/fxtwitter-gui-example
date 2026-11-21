@@ -21,7 +21,7 @@ let mediaListData = reactive([])
 let bulkSettingsStore = useBulkSettingsStore()
 let { focus_download_orig_img,
       use_v2_process_function,
-      max_retry_times_v2,
+      max_auto_retry_times_v2,
       valid_url_prefix } = storeToRefs(bulkSettingsStore)
 
 let sharedataDownloaderStore = useSharedataDownloaderStore()
@@ -233,7 +233,7 @@ async function axiosRequestV2(urlDataObjectArray) {
             continue
         }
         processMessage.value = 'Waiting... ' + element.url
-        let axiosRetryTimes = max_retry_times_v2.value
+        let axiosRetryTimes = max_auto_retry_times_v2.value
         let axiosResult = await axiosRequestRetryV2(element.apiUrl, axiosRetryTimes, processMessage.value)
         if (axiosResult?.status && axiosResult.status >= 200 && axiosResult.status < 300){
             element.axiosResponse = axiosResult
@@ -246,7 +246,7 @@ async function axiosRequestV2(urlDataObjectArray) {
 }
 
 async function axiosRequestRetryV2(url, retry_times, process_message_prefix) {
-    const now_retry_times = max_retry_times_v2.value - retry_times;
+    const now_retry_times = max_auto_retry_times_v2.value - retry_times;
     let lastError = null; 
 
     try {
@@ -616,9 +616,9 @@ function sendToDownloaderButtonClicked(){
                     <br>
                     <span
                         v-show="use_v2_process_function">
-                    Max Retry Times (V2):
+                    Max Automatic Retry Times (V2):
                     <el-input-number
-                        v-model="max_retry_times_v2"
+                        v-model="max_auto_retry_times_v2"
                         :min="0"
                         :max="99"
                     />

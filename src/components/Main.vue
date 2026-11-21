@@ -398,7 +398,7 @@ function timeZoneElInputBlurHandle(){
         <el-button @click="buttonClicked">Click</el-button>
         <el-button @click="pasteButtonClicked">Paste</el-button>
         <el-button @click="reverseOpenSettingsDrawer">
-            Open Settings
+            Settings
         </el-button>
         <span style="color:red;"
               v-if="is_api_error">

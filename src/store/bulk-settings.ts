@@ -22,13 +22,13 @@ export const DEFAULT_VALID_URL_PREFIX = [
 export const useBulkSettingsStore = defineStore('bulk-settings',()=>{
     let focus_download_orig_img = ref(true);
     let use_v2_process_function = ref(true);
-    let max_retry_times_v2 = ref(0);
+    let max_auto_retry_times_v2 = ref(0);
     let valid_url_prefix = ref([...DEFAULT_VALID_URL_PREFIX]);
 
     return {
         focus_download_orig_img,
         use_v2_process_function,
-        max_retry_times_v2,
+        max_auto_retry_times_v2,
         valid_url_prefix
     }
 },{
