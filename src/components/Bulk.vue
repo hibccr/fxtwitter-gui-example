@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { buildUrlDataObject } from '@/utils/extract-id'
-import { ref, reactive } from 'vue'
+import { ref, reactive, computed } from 'vue'
 import axios from 'axios'
 import { readClipboard } from '@/utils/clipboard-read'
 import { ElMessage } from 'element-plus'
@@ -25,6 +25,29 @@ let { focus_download_orig_img,
       valid_url_prefix } = storeToRefs(bulkSettingsStore)
 
 let sharedataDownloaderStore = useSharedataDownloaderStore()
+
+// ---- manual retry state (V2-only feature) ----
+// Items that failed in the latest round (only API failures, reserved words excluded).
+let retryFailedItems = ref<any[]>([])
+let isProcessing = ref(false)
+let retryTimes = ref(0)
+
+// The retry button is available only on the V2 path; the V1 path is legacy and keeps
+// its original behavior (no retry).
+const canRetry = computed(() =>
+    use_v2_process_function.value
+    && !isProcessing.value
+    && retryFailedItems.value.length > 0
+)
+const retryButtonText = computed(() => {
+    if (!use_v2_process_function.value) {
+        return 'Retry Failed (V2 only)'
+    }
+    if (retryFailedItems.value.length === 0) {
+        return 'Retry Failed'
+    }
+    return 'Retry Failed (' + retryFailedItems.value.length + ')'
+})
 
 // Edit as text: one domain per line (also accepts spaces / commas as separators).
 // Keep a raw draft so that blank lines / trailing newlines are not eaten while typing.
@@ -161,6 +184,30 @@ function isReservedWordUrl(urlString) {
 
 const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms))
 
+/*
+ * =====================================================================================
+ * LEGACY CODE (V1) - DO NOT MODIFY
+ * -------------------------------------------------------------------------------------
+ * NOTE FOR FUTURE AGENTS / MAINTAINERS:
+ *
+ * Everything in the "V1" request path below is LEGACY and is kept only for
+ * backward compatibility. The V1 path consists of:
+ *   - axiosRequest()                         (the function right below)
+ *   - the `else` branch in bulkProcess() that calls axiosRequest()
+ *   - the "Use Process Function Version 2" switch being OFF (use_v2_process_function)
+ *
+ * RULES:
+ *   1. Do NOT change, refactor, "improve" or reformat the V1 logic. Its current
+ *      behavior (including its lack of retry / error handling) is intentional and
+ *      must stay byte-for-byte equivalent.
+ *   2. All new features and bug fixes MUST be implemented in the V2 path only:
+ *      axiosRequestV2() / axiosRequestRetryV2() / requestItemsV2() / retry UI.
+ *   3. Features that only exist in V2 (e.g. the manual "Retry Failed" button) must
+ *      be explicitly disabled / hidden when the V1 path is selected.
+ *   4. If you are asked to "fix a bug in the request logic", assume V2 first,
+ *      and only touch V1 after the user explicitly asks for it.
+ * =====================================================================================
+ */
 async function axiosRequest(urlDataObjectArray){
     for(const element of urlDataObjectArray){
         //skip empty apiUrl
@@ -221,24 +268,56 @@ async function axiosRequestRetryV2(url, retry_times, process_message_prefix) {
     }
 }
 
+function buildElementOutput(element) {
+    if(element?.otherError === 'reserved_word'){
+        return 'Error: System: This url is not supported, url=' + element.url + '\n'
+    }
+
+    if(element.axiosResponse == null || element.axiosResponse == undefined){
+        if(element.axiosError == null || element.axiosError == undefined){
+            return 'Error: Empty Result, url=' + element.apiUrl + '\n'
+        }
+        return 'Error: Axios: ' + element.axiosError.message + ' (' + element.axiosError.status + '), url=' + element.apiUrl + ', body=' + JSON.stringify(element.axiosError?.response?.data) + '\n'
+    }
+
+    outputToMediaList(element)
+    return JSON.stringify(element.axiosResponse?.data) + '\n'
+}
+
 function outputToBox(){
     urlDataObjectArray.map((element) =>{
-        if(element?.otherError === 'reserved_word'){
-            ref_output.value = ref_output.value + 'Error: System: This url is not supported, url=' + element.url + '\n'
-            return
-        }
-
-        if(element.axiosResponse == null || element.axiosResponse == undefined){
-            if(element.axiosError == null || element.axiosError == undefined){
-                ref_output.value = ref_output.value + 'Error: Empty Result, url=' + element.apiUrl + '\n'
-            }else{
-                ref_output.value = ref_output.value + 'Error: Axios: ' + element.axiosError.message + ' (' + element.axiosError.status + '), url=' + element.apiUrl + ', body=' + JSON.stringify(element.axiosError?.response?.data) + '\n'
-            }
-        }else{
-            outputToMediaList(element)
-            ref_output.value = ref_output.value + JSON.stringify(element.axiosResponse?.data) + '\n'
-        }
+        ref_output.value = ref_output.value + buildElementOutput(element)
     })
+}
+
+function appendOutputForItems(items) {
+    items.forEach((element) => {
+        ref_output.value = ref_output.value + buildElementOutput(element)
+    })
+}
+
+// Only real API failures can be retried: skip reserved-word / empty apiUrl / succeeded items.
+function collectFailedItems() {
+    return urlDataObjectArray.filter((element) => {
+        if(element?.otherError === 'reserved_word'){
+            return false
+        }
+        if(element?.apiUrl === null || element?.apiUrl === ''){
+            return false
+        }
+        return element.axiosResponse == null || element.axiosResponse == undefined
+    })
+}
+
+function formatNow() {
+    const d = new Date()
+    const pad = (num) => String(num).padStart(2, '0')
+    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`
+}
+
+// V2-only helper: re-sends a subset of items (used by the manual retry button).
+async function requestItemsV2(items) {
+    await axiosRequestV2(items)
 }
 
 function outputToMediaList(obj){
@@ -257,6 +336,8 @@ function clearButtonClicked(){
     ref_output.value = ''
     urlDataObjectArray.length = 0
     mediaListData.length = 0
+    retryFailedItems.value = []
+    retryTimes.value = 0
 }
 
 function pasteButtonClicked(){
@@ -291,7 +372,7 @@ function openSettingsDrawerButtonClicked(){
     }
 }
 
-async function bulkButtonClicked(){
+async function bulkProcess(){
     let removeHashCommentsResult,
         splitStringResult,
         //formattedURLResult,
@@ -363,14 +444,79 @@ async function bulkButtonClicked(){
     console.log('4 Finish. Result:')
     console.log(urlDataObjectArray)
     console.log('5. Send Request to FxEmbed')
+    // Manual retry is a V2-only feature, so its state is only reset/collected in V2.
+    retryTimes.value = 0
+    retryFailedItems.value = []
     if (use_v2_process_function.value) {
         await axiosRequestV2(urlDataObjectArray)
     } else {
+        // LEGACY V1 path - do not modify.
         await axiosRequest(urlDataObjectArray)
     }
     console.log(urlDataObjectArray)
     console.log('6. Output')
     outputToBox()
+    if (use_v2_process_function.value) {
+        retryFailedItems.value = collectFailedItems()
+    }
+}
+
+async function bulkButtonClicked(){
+    if(isProcessing.value){
+        return
+    }
+    isProcessing.value = true
+    try{
+        await bulkProcess()
+    } finally {
+        isProcessing.value = false
+    }
+}
+
+async function retryButtonClicked(){
+    if(isProcessing.value){
+        return
+    }
+    // Manual retry is supported on the V2 path only (V1 is legacy, keep it untouched).
+    if(!use_v2_process_function.value){
+        ElMessage({
+            message: 'Retry is only available when "Use Process Function Version 2" is enabled.',
+            type: 'info'
+        })
+        return
+    }
+    // Re-collect from source, so that items recovered by any path are skipped.
+    const items = collectFailedItems()
+    if(items.length === 0){
+        retryFailedItems.value = []
+        ElMessage({
+            message: 'No failed item to retry.',
+            type: 'info'
+        })
+        return
+    }
+
+    isProcessing.value = true
+    retryTimes.value += 1
+    processMessage.value = 'Retrying...'
+    try{
+        console.log('Retry #' + retryTimes.value + ' at ' + new Date() + ', items: ' + items.length)
+        ref_output.value = ref_output.value
+            + '\n'
+            + '===== Retry #' + retryTimes.value + ' at ' + formatNow() + ', failed items: ' + items.length + ' =====\n'
+
+        items.forEach((element) => {
+            element.axiosResponse = null
+            element.axiosError = null
+        })
+        await requestItemsV2(items)
+
+        appendOutputForItems(items)
+        retryFailedItems.value = collectFailedItems()
+    } finally {
+        processMessage.value = ''
+        isProcessing.value = false
+    }
 }
 
 function sendToDownloaderButtonClicked(){
@@ -402,6 +548,14 @@ function sendToDownloaderButtonClicked(){
         <p>
             Output:
             <el-button @click="copyButtonClicked">Copy</el-button>
+            <el-button
+                type="warning"
+                plain
+                :loading="isProcessing"
+                :disabled="!canRetry"
+                @click="retryButtonClicked">
+                {{ retryButtonText }}
+            </el-button>
         </p>
         <el-input v-model="ref_output" style="width: 100%;" :rows="5" type="textarea" />
         <p>
