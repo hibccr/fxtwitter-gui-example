@@ -152,11 +152,11 @@
                 <div class="time-info">
                   <div v-if="row.user?.joined" class="join-time">
                     <el-icon><Calendar /></el-icon>
-                    Join at：{{ formatDate(row.user.joined) }}
+                    Join at：{{ timeStampProcess(row.user.joined) || 'Unknown' }}
                   </div>
                   <div v-if="row.tweet?.created_at" class="tweet-time">
                     <el-icon><Clock /></el-icon>
-                    Publish at：{{ formatDate(row.tweet.created_at) }}
+                    Publish at：{{ timeStampProcess(row.tweet.created_at) || 'Unknown' }}
                   </div>
                   <div v-if="row.tweet?.views" class="tweet-views">
                     <el-icon><View /></el-icon>
@@ -211,6 +211,32 @@
                     <br>
                     Show Alt Text:
                     <el-switch v-model="show_alt_text" />
+                    <br>
+                    Timezone:
+                    <el-select
+                      v-model="timezone_input"
+                      style="width: 240px;"
+                      filterable
+                      allow-create
+                      default-first-option
+                      placeholder="Select or type a timezone"
+                      @change="timeZoneSelectChangeHandle"
+                      @blur="timeZoneSelectBlurHandle">
+                      <el-option
+                        v-for="zone in timezoneOptions"
+                        :key="zone"
+                        :label="zone"
+                        :value="zone" />
+                    </el-select>
+                    <br>
+                    Time format:
+                    <el-select
+                      v-model="parser_time_display_format"
+                      style="width: 240px;">
+                      <el-option label="Twitter (native)" value="twitter" />
+                      <el-option label="ISO 8601" value="iso" />
+                      <el-option label="Relative (English)" value="relative" />
+                    </el-select>
                 </div>
             </template>
         </el-drawer>
@@ -224,7 +250,7 @@
           <br>
           <span>Source: {{ aboutThisAccountObject?.source }}</span>
           <br>
-          <span>Username changed {{ aboutThisAccountObject?.username_changes?.count }} times, last changed at {{ aboutThisAccountObject?.username_changes?.last_changed_at }}</span>
+          <span>Username changed {{ aboutThisAccountObject?.username_changes?.count }} times, last changed at {{ timeStampProcess(aboutThisAccountObject?.username_changes?.last_changed_at) || 'Unknown' }}</span>
           <template #footer>
             <div>
               <el-button
@@ -239,7 +265,7 @@
 </template>
   
 <script setup>
-import { ref, computed, reactive } from 'vue'
+import { ref, computed, reactive, onMounted } from 'vue'
 import { ElMessage } from 'element-plus'
 import {
   User,
@@ -258,6 +284,12 @@ import { useParserSettingsStore } from '@/store/parser-settings'
 import { storeToRefs } from 'pinia'
 import { useSharedataDownloaderStore } from '@/store/sharedata-downloader'
 import { readClipboard } from '@/utils/clipboard-read'
+import {
+  formatTimestamp,
+  getSupportedTimezones,
+  isValidTimezone,
+  normalizeTimezone
+} from '@/utils/time'
 
 let settingsDrawerFlag = ref(false)
 let aboutThisAccountDialogFlag = ref(false)
@@ -269,7 +301,24 @@ let sharedataDownloaderStore = useSharedataDownloaderStore()
 let parserSettingsStore = useParserSettingsStore()
 let { x_open_link_prefix,
       enable_video_player,
-      show_alt_text } = storeToRefs(parserSettingsStore)
+      show_alt_text,
+      parser_timezone,
+      parser_time_display_format } = storeToRefs(parserSettingsStore)
+
+let timezone_input = ref('')
+let timezoneOptions = ref([])
+
+const knownTimeFormats = ['twitter', 'iso', 'relative']
+
+onMounted(() => {
+  timezoneOptions.value = getSupportedTimezones()
+  timezone_input.value = parser_timezone.value
+
+  // Older persisted settings may contain a format that no longer exists.
+  if (!knownTimeFormats.includes(String(parser_time_display_format.value))) {
+    parser_time_display_format.value = 'twitter'
+  }
+})
 
 const enable_video_player_options = [
   {
@@ -336,15 +385,49 @@ const formatNumber = (num) => {
   return num.toString()
 }
   
-// 格式化日期
-const formatDate = (dateStr) => {
-  if (!dateStr) return 'Unknown'
-  try {
-    const date = new Date(dateStr)
-    return date.toLocaleString('en-US')
-  } catch {
-    return dateStr
+// Format a timestamp with the parser page time settings.
+function timeStampProcess(timestamp) {
+  if (timestamp == undefined || timestamp == null || timestamp === '') {
+    return ''
   }
+
+  try {
+    return formatTimestamp(timestamp, parser_timezone.value, parser_time_display_format.value)
+  } catch (error) {
+    // Keep the last valid timezone; only fall back to UTC when it is broken too.
+    if (!isValidTimezone(parser_timezone.value)) {
+      parser_timezone.value = 'UTC'
+    }
+    timezone_input.value = parser_timezone.value
+    ElMessage({
+      message: 'timezone is invaild.',
+      type: 'error'
+    })
+    return ''
+  }
+}
+
+function commitTimezone(value) {
+  const normalized = normalizeTimezone(value)
+  if (normalized === null) {
+    // Reject the input and restore the last valid timezone.
+    timezone_input.value = parser_timezone.value
+    ElMessage({
+      message: 'timezone is invaild.',
+      type: 'error'
+    })
+    return
+  }
+  parser_timezone.value = normalized
+  timezone_input.value = normalized
+}
+
+function timeZoneSelectChangeHandle(value) {
+  commitTimezone(value)
+}
+
+function timeZoneSelectBlurHandle() {
+  commitTimezone(timezone_input.value)
 }
   
 // 获取图片宽度
