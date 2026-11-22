@@ -1,5 +1,6 @@
 import { defineStore } from "pinia"
 import { ref, reactive } from "vue";
+import type { TimeDisplayFormat } from "@/utils/time";
 
 export const useSettingsStore = defineStore('settings',()=>{
     let show_res_json = ref(true);
@@ -10,6 +11,8 @@ export const useSettingsStore = defineStore('settings',()=>{
     let show_jump_to_author_button = ref(true);
     let jump_to_author_url_prefix = ref('https://twitter.com/');
     let set_timezone = ref('UTC');
+    // Time display style; unknown legacy values fall back to 'twitter' at format time.
+    let time_display_format = ref<TimeDisplayFormat>('twitter');
 
     return {show_res_json,
         show_debug_info,
@@ -18,7 +21,8 @@ export const useSettingsStore = defineStore('settings',()=>{
         focus_download_orig_img,
         show_jump_to_author_button,
         jump_to_author_url_prefix,
-        set_timezone
+        set_timezone,
+        time_display_format
     }
 },{
     persist: true,

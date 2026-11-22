@@ -7,6 +7,12 @@ import { storeToRefs } from 'pinia';
 import useClipboard from 'vue-clipboard3';
 import { ElMessage } from 'element-plus';
 import { readClipboard } from '@/utils/clipboard-read';
+import {
+    formatTimestamp,
+    getSupportedTimezones,
+    isValidTimezone,
+    normalizeTimezone
+} from '@/utils/time';
 
 const { toClipboard } = useClipboard();
 
@@ -27,6 +33,7 @@ let tweet_statusid = ref('');
 let willrequrl = ref('');
 
 let timezone_input = ref('');
+let timezoneOptions = ref<string[]>([]);
 let aboutThisAccount = ref(null);
 
 // use pinia instead of this
@@ -38,7 +45,8 @@ let {show_res_json,
     focus_download_orig_img,
     show_jump_to_author_button,
     jump_to_author_url_prefix,
-    set_timezone } = storeToRefs(settingsStore)
+    set_timezone,
+    time_display_format } = storeToRefs(settingsStore)
 
 let open_settings_drawer = ref(false);
 
@@ -69,8 +77,16 @@ let apiTypeInUser = computed(
     }
 )
 
+const knownTimeFormats: string[] = ['twitter', 'iso', 'relative'];
+
 onMounted(() => {
-    timezone_input.value = set_timezone.value
+    timezoneOptions.value = getSupportedTimezones();
+    timezone_input.value = set_timezone.value;
+
+    // Older persisted settings may contain a format that no longer exists.
+    if (!knownTimeFormats.includes(String(time_display_format.value))) {
+        time_display_format.value = 'twitter';
+    }
 })
 
 
@@ -337,55 +353,43 @@ function timeStampProcess(timestamp){
         return ''
     }
 
-    let dateObject = new Date(timestamp)
-    let formatOptions = {
-        weekday: 'short',
-        month: 'short',
-        day: '2-digit',
-        hour: '2-digit',
-        minute: '2-digit',
-        second: '2-digit',
-        timeZone: set_timezone.value,
-        hour12: false,
-        timeZoneName: 'short',
-        year: 'numeric'
-    }
-
-    let result = ''
     try{
-        result = new Intl.DateTimeFormat('en-US', formatOptions).format(dateObject)
+        return formatTimestamp(timestamp, set_timezone.value, time_display_format.value)
     }catch (error){
-        set_timezone.value = 'UTC'
+        // Keep the last valid timezone; only fall back to UTC when it is broken too.
+        if (!isValidTimezone(set_timezone.value)){
+            set_timezone.value = 'UTC'
+        }
+        timezone_input.value = set_timezone.value
         ElMessage({
             message: 'timezone is invaild.',
             type: 'error'
         })
+        return ''
     }
-    return result
 }
 
-function timeZoneAssert(timezone){
-    let dateObject = new Date('2020-01-01T00:00:00Z')
-    try {
-        new Intl.DateTimeFormat('en-US', {
-            timeZone: timezone
-        }).format(dateObject)
-    } catch(error) {
-        return false
-    }
-    return true
-}
-
-function timeZoneElInputBlurHandle(){
-    if (timeZoneAssert(timezone_input.value)){
-        set_timezone.value = timezone_input.value
-    }else{
-        set_timezone.value = 'UTC'
+function commitTimezone(value){
+    const normalized = normalizeTimezone(value)
+    if (normalized === null){
+        // Reject the input and restore the last valid timezone.
+        timezone_input.value = set_timezone.value
         ElMessage({
             message: 'timezone is invaild.',
             type: 'error'
         })
+        return
     }
+    set_timezone.value = normalized
+    timezone_input.value = normalized
+}
+
+function timeZoneSelectChangeHandle(value){
+    commitTimezone(value)
+}
+
+function timeZoneSelectBlurHandle(){
+    commitTimezone(timezone_input.value)
 }
 </script>
 
@@ -622,11 +626,34 @@ function timeZoneElInputBlurHandle(){
                 </p>
                 <p>
                     Timezone:
-                    <el-input
-                        style="width: 200px;"
+                    <el-select
                         v-model="timezone_input"
-                        @blur="timeZoneElInputBlurHandle"
-                        />
+                        style="width: 240px;"
+                        filterable
+                        allow-create
+                        default-first-option
+                        placeholder="Select or type a timezone"
+                        @change="timeZoneSelectChangeHandle"
+                        @blur="timeZoneSelectBlurHandle"
+                        >
+                        <el-option
+                            v-for="zone in timezoneOptions"
+                            :key="zone"
+                            :label="zone"
+                            :value="zone"
+                            />
+                    </el-select>
+                </p>
+                <p>
+                    Time format:
+                    <el-select
+                        v-model="time_display_format"
+                        style="width: 240px;"
+                        >
+                        <el-option label="Twitter (native)" value="twitter" />
+                        <el-option label="ISO 8601" value="iso" />
+                        <el-option label="Relative (English)" value="relative" />
+                    </el-select>
                 </p>
                 <p>
                     Git_CommitHash: {{ git_commithash }}
